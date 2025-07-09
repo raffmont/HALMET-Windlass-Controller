@@ -48,6 +48,7 @@ using namespace halmet;
 // Declare some global variables required for the firmware operation.
 
 #define WINDLASS_GO_DOWN +1
+#define WINDLASS_GO_OFF 0
 #define WINDLASS_GO_UP -1
 
 TwoWire* i2c;
@@ -63,7 +64,7 @@ const uint8_t goDownPin = 16;
 int chainCounter = 0;  
 
 // 1 =  Chain down / count up, -1 = Chain up / count backwards
-int upDown = WINDLASS_GO_DOWN;  
+int upDown = WINDLASS_GO_OFF;  
 
 // Stores last ChainCounter value to allow storage to nonvolatile storage in case of value changes
 int lastSavedCounter = 0;
@@ -157,6 +158,8 @@ void setup() {
   chainCounterMetadata->display_name_ = "Chain Deployed";
   chainCounterMetadata->short_name_ = "Chain Out";
 
+  auto chainCounterSKOutput = new SKOutputFloat(chainCounterSKPath, chainCounterSKPathConfigPath, chainCounterMetadata);
+
   // Chain counter speed metadata
   SKMetadata* chainSpeedMetadata = new SKMetadata();
   chainSpeedMetadata->units_ = "m/s";
@@ -164,7 +167,7 @@ void setup() {
   chainSpeedMetadata->display_name_ = "Windlass speed";
   chainSpeedMetadata->short_name_ = "Chain speed";
 
-  auto* windlassStatusSKOutput = new SKOutputString(windlassStatusSKPath, windlassStatusSKPathConfigPath);
+  auto windlassStatusSKOutput = new SKOutputString(windlassStatusSKPath, windlassStatusSKPathConfigPath);
   windlassStatusSKOutput->emit("off");
 
 
@@ -186,6 +189,7 @@ void setup() {
   auto chainCounterSensor = ConnectAlarmSender(kDigitalInputPin1, "D1");
   auto goingUpSensor = ConnectAlarmSender(kDigitalInputPin2, "D2");
   auto goingDownSensor = ConnectAlarmSender(kDigitalInputPin3, "D3");
+  auto resetSensor = ConnectAlarmSender(kDigitalInputPin4, "D4");
   
   chainCounterSensor->connect_to(
 
@@ -260,7 +264,7 @@ void setup() {
         )
       )
     ->connect_to(new Linear(chainCalibrationValue, chainCalibrationOffset, chainCalibrationSKPathConfigPath))
-    ->connect_to(new SKOutputFloat(chainCounterSKPath, chainCounterSKPathConfigPath, chainCounterMetadata));
+    ->connect_to(chainCounterSKOutput);
     
   
 
@@ -292,10 +296,26 @@ void setup() {
         // Update the windlass status
         windlassStatusSKOutput->emit("down");
       } else {
+
+        // Set th up/down value
+        upDown = WINDLASS_GO_OFF;
+
         // The windlass is not going down anymore (release), update the windlass status
         windlassStatusSKOutput->emit("off");
       }
     }));
+
+
+  resetSensor->connect_to(new LambdaConsumer<int>([chainCounterSKOutput](int input) {
+
+      // Check if the windlass is going down (press)
+      if (input == HIGH) {
+
+        chainCounter = 0;
+        chainCounterSKOutput->emit(chainCounter);
+      } 
+    }));
+  
 
 
   // Sense the chain speed
@@ -317,13 +337,16 @@ void setup() {
 
       // Create a lambda consumer function
       new LambdaConsumer<String>(
-        [](String input) {
+        [chainCounterSKOutput](String input) {
 
           // Check if a chain counter reset is needed
           if (input == "reset") {
 
             // Reset the counter
             chainCounter = 0;
+
+            // Publish the counter
+            chainCounterSKOutput->emit(chainCounter);
           }  
           // Check if the status is up and the windlass is not going up
           else if (input == "up" && digitalRead(kDigitalInputPin2) == LOW) {
