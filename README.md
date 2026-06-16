@@ -112,6 +112,7 @@ network shutdown.
 
 ## Documentation
 
+- [Getting started](docs/getting_started.md)
 - [Architecture](docs/architecture.md)
 - [SensESP configuration](docs/sensesp_configuration.md)
 - [Signal K interface](docs/signalk.md)
