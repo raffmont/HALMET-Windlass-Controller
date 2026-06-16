@@ -7,9 +7,11 @@ The firmware registers one windlass-specific SensESP `ConfigItem`:
 ```
 
 The object is implemented in `include/windlass_config.h` and persisted through
-SensESP `FileSystemSaveable` storage. The pulse counter itself is stored in ESP32
-NVS under the `windlass` namespace because it is runtime state rather than UI
-configuration.
+SensESP `FileSystemSaveable` storage. The web UI schema uses flat field names
+because the SensESP configuration editor renders first-level scalar values. The
+loader also accepts older nested `gps`, `anchor_watch`, and `signalk_paths`
+configuration objects. The pulse counter itself is stored in ESP32 NVS under the
+`windlass` namespace because it is runtime state rather than UI configuration.
 
 ## Editable Fields
 
@@ -29,44 +31,48 @@ configuration.
 | `seafloor_min_length_m` | `1.00` | Minimum deployed length before seafloor detection. |
 | `anchor_detected_length_m` | `0.33` | Length threshold for initial anchor deployment. |
 
-Nested `gps` and `anchor_watch` objects configure the standalone anchor-watch
-feature. GPS defaults to `rx_pin = -1`, so no UART is opened until a tested spare
-pin is selected.
+The `gps_*` and `anchor_watch_*` fields configure the standalone anchor-watch
+feature. GPS defaults to `gps_rx_pin = -1`, so no UART is opened until a tested
+spare pin is selected.
+
+`gps_mode` is selected from `auto`, `uart`, `i2c`, and `disabled`.
+`anchor_watch_anchor_position_strategy` is selected from `weighted_set_fix` and
+`current_fix`.
 
 Key anchor-watch defaults:
 
 | Field | Default | Runtime effect |
 | --- | ---: | --- |
-| `gps.min_satellites` | `5` | Required satellite count before a fix is usable. |
-| `gps.max_hdop` | `2.5` | Required horizontal dilution quality. |
-| `gps.stable_samples` | `5` | Consecutive valid fixes before arming. |
-| `anchor_watch.enabled` | `true` | Enables the state machine. |
-| `anchor_watch.auto_arm` | `true` | Arms from deployment state and GPS quality. |
-| `anchor_watch.deploy_threshold_m` | `5.0` | Deployed rode needed before arming. |
-| `anchor_watch.onboard_threshold_m` | `0.5` | Rode length used for automatic disarm. |
-| `anchor_watch.automatic_radius` | `true` | Calculates radius from rode, vessel, and GPS margins. |
-| `anchor_watch.manual_radius_m` | `35.0` | Radius used when automatic radius is off. |
+| `gps_min_satellites` | `5` | Required satellite count before a fix is usable. |
+| `gps_max_hdop` | `2.5` | Required horizontal dilution quality. |
+| `gps_stable_samples` | `5` | Consecutive valid fixes before arming. |
+| `anchor_watch_enabled` | `true` | Enables the state machine. |
+| `anchor_watch_auto_arm` | `true` | Arms from deployment state and GPS quality. |
+| `anchor_watch_deploy_threshold_m` | `5.0` | Deployed rode needed before arming. |
+| `anchor_watch_onboard_threshold_m` | `0.5` | Rode length used for automatic disarm. |
+| `anchor_watch_automatic_radius` | `true` | Calculates radius from rode, vessel, and GPS margins. |
+| `anchor_watch_manual_radius_m` | `35.0` | Radius used when automatic radius is off. |
 
 ## Signal K Path Fields
 
 The same configuration object stores editable Signal K paths:
 
 ```text
-signalk_paths.rode_length
-signalk_paths.rode_speed
-signalk_paths.direction
-signalk_paths.state
-signalk_paths.command_status
-signalk_paths.command_request
-signalk_paths.pulses
-signalk_paths.meters_per_pulse
-signalk_paths.faults
-signalk_paths.mode
-signalk_paths.freefall_detected
-signalk_paths.anchor_detected
-signalk_paths.seafloor_detected
-signalk_paths.event
-signalk_paths.notification
+sk_rode_length
+sk_rode_speed
+sk_direction
+sk_state
+sk_command_status
+sk_command_request
+sk_pulses
+sk_meters_per_pulse
+sk_faults
+sk_mode
+sk_freefall_detected
+sk_anchor_detected
+sk_seafloor_detected
+sk_event
+sk_notification
 ```
 
 Defaults are defined in `include/signalk_paths.h`.

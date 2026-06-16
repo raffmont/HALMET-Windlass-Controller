@@ -20,7 +20,7 @@
 - [ ] Keep `relay_active_high = true` for high-level-trigger relay modules.
 - [ ] Set the zero point with the anchor fully recovered but not over-tensioned.
 - [ ] Confirm the OLED shows IP, mode, chain length, and speed when fitted.
-- [ ] If using GPS, set `gps.rx_pin`, confirm `gnss.present`, and wait for
+- [ ] If using GPS, set `gps_rx_pin`, confirm `gnss.present`, and wait for
       `gnss.fixValid` before testing anchor watch.
 
 ## Bench And Dockside Tests

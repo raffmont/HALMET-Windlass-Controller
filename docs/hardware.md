@@ -54,7 +54,7 @@ drop length, power injection, shielding, and termination.
 ## Optional GPS/GNSS
 
 Anchor watch can use an external UART NMEA 0183 GNSS receiver. GPS RX is
-disabled by default (`gps.rx_pin = -1`) because safe spare GPIO availability
+disabled by default (`gps_rx_pin = -1`) because safe spare GPIO availability
 depends on the exact HALMET revision and installation. Do not reuse D1-D4, relay
 outputs, I2C, or CAN pins.
 

@@ -46,6 +46,21 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
   String sk_event = DEFAULT_SK_EVENT;
   String sk_notification = DEFAULT_SK_NOTIFICATION;
 
+  static bool readStringValue(JsonVariantConst value, String& target) {
+    if (value.is<const char*>()) {
+      target = value.as<String>();
+      return true;
+    }
+    if (value.is<JsonArrayConst>()) {
+      JsonArrayConst values = value.as<JsonArrayConst>();
+      if (values.size() > 0 && values[0].is<const char*>()) {
+        target = values[0].as<String>();
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool to_json(JsonObject& root) override {
     root["meters_per_pulse"] = meters_per_pulse;
     root["chain_pulse_debounce_ms"] = chain_pulse_debounce_ms;
@@ -60,57 +75,56 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
     root["seafloor_no_pulse_ms"] = seafloor_no_pulse_ms;
     root["seafloor_min_length_m"] = seafloor_min_length_m;
     root["anchor_detected_length_m"] = anchor_detected_length_m;
-    JsonObject gps_config = root["gps"].to<JsonObject>();
-    gps_config["mode"] = gps.mode;
-    gps_config["rx_pin"] = gps.rx_pin;
-    gps_config["tx_pin"] = gps.tx_pin;
-    gps_config["baud"] = gps.baud;
-    gps_config["publish_navigation_position"] = gps.publish_navigation_position;
-    gps_config["min_satellites"] = gps.min_satellites;
-    gps_config["max_hdop"] = gps.max_hdop;
-    gps_config["max_fix_age_ms"] = gps.max_fix_age_ms;
-    gps_config["stable_samples"] = gps.stable_samples;
+    root["gps_mode"] = gps.mode;
+    root["gps_rx_pin"] = gps.rx_pin;
+    root["gps_tx_pin"] = gps.tx_pin;
+    root["gps_baud"] = gps.baud;
+    root["gps_publish_navigation_position"] = gps.publish_navigation_position;
+    root["gps_min_satellites"] = gps.min_satellites;
+    root["gps_max_hdop"] = gps.max_hdop;
+    root["gps_max_fix_age_ms"] = gps.max_fix_age_ms;
+    root["gps_stable_samples"] = gps.stable_samples;
 
-    JsonObject aw = root["anchor_watch"].to<JsonObject>();
-    aw["enabled"] = anchor_watch.enabled;
-    aw["auto_arm"] = anchor_watch.auto_arm;
-    aw["deploy_threshold_m"] = anchor_watch.deploy_threshold_m;
-    aw["onboard_threshold_m"] = anchor_watch.onboard_threshold_m;
-    aw["manual_radius_m"] = anchor_watch.manual_radius_m;
-    aw["automatic_radius"] = anchor_watch.automatic_radius;
-    aw["scope_multiplier"] = anchor_watch.scope_multiplier;
-    aw["boat_length_m"] = anchor_watch.boat_length_m;
-    aw["bow_offset_m"] = anchor_watch.bow_offset_m;
-    aw["gps_error_margin_m"] = anchor_watch.gps_error_margin_m;
-    aw["min_radius_m"] = anchor_watch.min_radius_m;
-    aw["arming_delay_ms"] = anchor_watch.arming_delay_ms;
-    aw["alarm_delay_ms"] = anchor_watch.alarm_delay_ms;
-    aw["clear_delay_ms"] = anchor_watch.clear_delay_ms;
-    aw["hysteresis_m"] = anchor_watch.hysteresis_m;
-    aw["waypoint_enabled"] = anchor_watch.waypoint_enabled;
-    aw["waypoint_delete_on_disarm"] = anchor_watch.waypoint_delete_on_disarm;
-    aw["n2k_publish_gnss"] = anchor_watch.n2k_publish_gnss;
-    aw["n2k_anchor_watch_as_active_waypoint"] =
+    root["anchor_watch_enabled"] = anchor_watch.enabled;
+    root["anchor_watch_auto_arm"] = anchor_watch.auto_arm;
+    root["anchor_watch_deploy_threshold_m"] = anchor_watch.deploy_threshold_m;
+    root["anchor_watch_onboard_threshold_m"] = anchor_watch.onboard_threshold_m;
+    root["anchor_watch_manual_radius_m"] = anchor_watch.manual_radius_m;
+    root["anchor_watch_automatic_radius"] = anchor_watch.automatic_radius;
+    root["anchor_watch_scope_multiplier"] = anchor_watch.scope_multiplier;
+    root["anchor_watch_boat_length_m"] = anchor_watch.boat_length_m;
+    root["anchor_watch_bow_offset_m"] = anchor_watch.bow_offset_m;
+    root["anchor_watch_gps_error_margin_m"] = anchor_watch.gps_error_margin_m;
+    root["anchor_watch_min_radius_m"] = anchor_watch.min_radius_m;
+    root["anchor_watch_arming_delay_ms"] = anchor_watch.arming_delay_ms;
+    root["anchor_watch_alarm_delay_ms"] = anchor_watch.alarm_delay_ms;
+    root["anchor_watch_clear_delay_ms"] = anchor_watch.clear_delay_ms;
+    root["anchor_watch_hysteresis_m"] = anchor_watch.hysteresis_m;
+    root["anchor_watch_waypoint_enabled"] = anchor_watch.waypoint_enabled;
+    root["anchor_watch_waypoint_delete_on_disarm"] =
+        anchor_watch.waypoint_delete_on_disarm;
+    root["anchor_watch_n2k_publish_gnss"] = anchor_watch.n2k_publish_gnss;
+    root["anchor_watch_n2k_anchor_watch_as_active_waypoint"] =
         anchor_watch.n2k_anchor_watch_as_active_waypoint;
-    aw["anchor_position_strategy"] = anchor_watch.anchor_position_strategy;
-    aw["waypoint_id"] = anchor_watch.waypoint_id;
+    root["anchor_watch_anchor_position_strategy"] =
+        anchor_watch.anchor_position_strategy;
+    root["anchor_watch_waypoint_id"] = anchor_watch.waypoint_id;
 
-    JsonObject paths = root["signalk_paths"].to<JsonObject>();
-    paths["rode_length"] = sk_rode_length;
-    paths["rode_speed"] = sk_rode_speed;
-    paths["direction"] = sk_direction;
-    paths["state"] = sk_state;
-    paths["command_status"] = sk_command_status;
-    paths["command_request"] = sk_command_request;
-    paths["pulses"] = sk_pulses;
-    paths["meters_per_pulse"] = sk_meters_per_pulse;
-    paths["faults"] = sk_faults;
-    paths["mode"] = sk_mode;
-    paths["freefall_detected"] = sk_freefall_detected;
-    paths["anchor_detected"] = sk_anchor_detected;
-    paths["seafloor_detected"] = sk_seafloor_detected;
-    paths["event"] = sk_event;
-    paths["notification"] = sk_notification;
+    root["sk_rode_length"] = sk_rode_length;
+    root["sk_rode_speed"] = sk_rode_speed;
+    root["sk_direction"] = sk_direction;
+    root["sk_state"] = sk_state;
+    root["sk_command_status"] = sk_command_status;
+    root["sk_command_request"] = sk_command_request;
+    root["sk_pulses"] = sk_pulses;
+    root["sk_meters_per_pulse"] = sk_meters_per_pulse;
+    root["sk_faults"] = sk_faults;
+    root["sk_mode"] = sk_mode;
+    root["sk_freefall_detected"] = sk_freefall_detected;
+    root["sk_anchor_detected"] = sk_anchor_detected;
+    root["sk_seafloor_detected"] = sk_seafloor_detected;
+    root["sk_event"] = sk_event;
+    root["sk_notification"] = sk_notification;
     return true;
   }
 
@@ -159,6 +173,16 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
       if (v >= 0.0 && v <= 10.0) anchor_detected_length_m = v;
     }
 
+    readStringValue(root["gps_mode"], gps.mode);
+    if (root["gps_rx_pin"].is<int>()) gps.rx_pin = root["gps_rx_pin"];
+    if (root["gps_tx_pin"].is<int>()) gps.tx_pin = root["gps_tx_pin"];
+    if (root["gps_baud"].is<uint32_t>()) gps.baud = root["gps_baud"];
+    if (root["gps_publish_navigation_position"].is<bool>()) gps.publish_navigation_position = root["gps_publish_navigation_position"];
+    if (root["gps_min_satellites"].is<uint8_t>()) gps.min_satellites = root["gps_min_satellites"];
+    if (root["gps_max_hdop"].is<float>()) gps.max_hdop = root["gps_max_hdop"];
+    if (root["gps_max_fix_age_ms"].is<uint32_t>()) gps.max_fix_age_ms = root["gps_max_fix_age_ms"];
+    if (root["gps_stable_samples"].is<uint8_t>()) gps.stable_samples = root["gps_stable_samples"];
+
     JsonObjectConst gps_config = root["gps"];
     if (!gps_config.isNull()) {
       if (gps_config["mode"].is<const char*>()) gps.mode = gps_config["mode"].as<String>();
@@ -171,6 +195,29 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
       if (gps_config["max_fix_age_ms"].is<uint32_t>()) gps.max_fix_age_ms = gps_config["max_fix_age_ms"];
       if (gps_config["stable_samples"].is<uint8_t>()) gps.stable_samples = gps_config["stable_samples"];
     }
+
+    if (root["anchor_watch_enabled"].is<bool>()) anchor_watch.enabled = root["anchor_watch_enabled"];
+    if (root["anchor_watch_auto_arm"].is<bool>()) anchor_watch.auto_arm = root["anchor_watch_auto_arm"];
+    if (root["anchor_watch_deploy_threshold_m"].is<float>()) anchor_watch.deploy_threshold_m = root["anchor_watch_deploy_threshold_m"];
+    if (root["anchor_watch_onboard_threshold_m"].is<float>()) anchor_watch.onboard_threshold_m = root["anchor_watch_onboard_threshold_m"];
+    if (root["anchor_watch_manual_radius_m"].is<float>()) anchor_watch.manual_radius_m = root["anchor_watch_manual_radius_m"];
+    if (root["anchor_watch_automatic_radius"].is<bool>()) anchor_watch.automatic_radius = root["anchor_watch_automatic_radius"];
+    if (root["anchor_watch_scope_multiplier"].is<float>()) anchor_watch.scope_multiplier = root["anchor_watch_scope_multiplier"];
+    if (root["anchor_watch_boat_length_m"].is<float>()) anchor_watch.boat_length_m = root["anchor_watch_boat_length_m"];
+    if (root["anchor_watch_bow_offset_m"].is<float>()) anchor_watch.bow_offset_m = root["anchor_watch_bow_offset_m"];
+    if (root["anchor_watch_gps_error_margin_m"].is<float>()) anchor_watch.gps_error_margin_m = root["anchor_watch_gps_error_margin_m"];
+    if (root["anchor_watch_min_radius_m"].is<float>()) anchor_watch.min_radius_m = root["anchor_watch_min_radius_m"];
+    if (root["anchor_watch_arming_delay_ms"].is<uint32_t>()) anchor_watch.arming_delay_ms = root["anchor_watch_arming_delay_ms"];
+    if (root["anchor_watch_alarm_delay_ms"].is<uint32_t>()) anchor_watch.alarm_delay_ms = root["anchor_watch_alarm_delay_ms"];
+    if (root["anchor_watch_clear_delay_ms"].is<uint32_t>()) anchor_watch.clear_delay_ms = root["anchor_watch_clear_delay_ms"];
+    if (root["anchor_watch_hysteresis_m"].is<float>()) anchor_watch.hysteresis_m = root["anchor_watch_hysteresis_m"];
+    if (root["anchor_watch_waypoint_enabled"].is<bool>()) anchor_watch.waypoint_enabled = root["anchor_watch_waypoint_enabled"];
+    if (root["anchor_watch_waypoint_delete_on_disarm"].is<bool>()) anchor_watch.waypoint_delete_on_disarm = root["anchor_watch_waypoint_delete_on_disarm"];
+    if (root["anchor_watch_n2k_publish_gnss"].is<bool>()) anchor_watch.n2k_publish_gnss = root["anchor_watch_n2k_publish_gnss"];
+    if (root["anchor_watch_n2k_anchor_watch_as_active_waypoint"].is<bool>()) anchor_watch.n2k_anchor_watch_as_active_waypoint = root["anchor_watch_n2k_anchor_watch_as_active_waypoint"];
+    readStringValue(root["anchor_watch_anchor_position_strategy"],
+                    anchor_watch.anchor_position_strategy);
+    if (root["anchor_watch_waypoint_id"].is<const char*>()) anchor_watch.waypoint_id = root["anchor_watch_waypoint_id"].as<String>();
 
     JsonObjectConst aw = root["anchor_watch"];
     if (!aw.isNull()) {
@@ -196,6 +243,22 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
       if (aw["anchor_position_strategy"].is<const char*>()) anchor_watch.anchor_position_strategy = aw["anchor_position_strategy"].as<String>();
       if (aw["waypoint_id"].is<const char*>()) anchor_watch.waypoint_id = aw["waypoint_id"].as<String>();
     }
+
+    if (root["sk_rode_length"].is<const char*>()) sk_rode_length = root["sk_rode_length"].as<String>();
+    if (root["sk_rode_speed"].is<const char*>()) sk_rode_speed = root["sk_rode_speed"].as<String>();
+    if (root["sk_direction"].is<const char*>()) sk_direction = root["sk_direction"].as<String>();
+    if (root["sk_state"].is<const char*>()) sk_state = root["sk_state"].as<String>();
+    if (root["sk_command_status"].is<const char*>()) sk_command_status = root["sk_command_status"].as<String>();
+    if (root["sk_command_request"].is<const char*>()) sk_command_request = root["sk_command_request"].as<String>();
+    if (root["sk_pulses"].is<const char*>()) sk_pulses = root["sk_pulses"].as<String>();
+    if (root["sk_meters_per_pulse"].is<const char*>()) sk_meters_per_pulse = root["sk_meters_per_pulse"].as<String>();
+    if (root["sk_faults"].is<const char*>()) sk_faults = root["sk_faults"].as<String>();
+    if (root["sk_mode"].is<const char*>()) sk_mode = root["sk_mode"].as<String>();
+    if (root["sk_freefall_detected"].is<const char*>()) sk_freefall_detected = root["sk_freefall_detected"].as<String>();
+    if (root["sk_anchor_detected"].is<const char*>()) sk_anchor_detected = root["sk_anchor_detected"].as<String>();
+    if (root["sk_seafloor_detected"].is<const char*>()) sk_seafloor_detected = root["sk_seafloor_detected"].as<String>();
+    if (root["sk_event"].is<const char*>()) sk_event = root["sk_event"].as<String>();
+    if (root["sk_notification"].is<const char*>()) sk_notification = root["sk_notification"].as<String>();
 
     JsonObjectConst paths = root["signalk_paths"];
     if (!paths.isNull()) {
@@ -239,48 +302,51 @@ inline const String ConfigSchema(const WindlassRuntimeConfig& obj) {
       "seafloor_no_pulse_ms": { "title": "Seafloor no-pulse time, ms", "type": "integer", "minimum": 250, "maximum": 10000 },
       "seafloor_min_length_m": { "title": "Seafloor minimum deployed length, m", "type": "number", "minimum": 0.0, "maximum": 20.0, "multipleOf": 0.1 },
       "anchor_detected_length_m": { "title": "Anchor detected length, m", "type": "number", "minimum": 0.0, "maximum": 10.0, "multipleOf": 0.01 },
-      "gps": {
-        "title": "GPS/GNSS",
-        "type": "object",
-        "properties": {
-          "mode": { "title": "GPS mode", "type": "string", "enum": ["auto", "uart", "i2c", "disabled"] },
-          "rx_pin": { "title": "GPS UART RX pin (-1 disables)", "type": "integer", "minimum": -1, "maximum": 39 },
-          "tx_pin": { "title": "GPS UART TX pin (-1 receive only)", "type": "integer", "minimum": -1, "maximum": 39 },
-          "baud": { "title": "GPS baud (0 scans common bauds)", "type": "integer" },
-          "publish_navigation_position": { "title": "Publish local GPS to navigation.*", "type": "boolean" },
-          "min_satellites": { "title": "Minimum satellites", "type": "integer", "minimum": 1, "maximum": 16 },
-          "max_hdop": { "title": "Maximum HDOP", "type": "number", "minimum": 0.5, "maximum": 10.0 },
-          "max_fix_age_ms": { "title": "Maximum fix age, ms", "type": "integer", "minimum": 1000, "maximum": 60000 },
-          "stable_samples": { "title": "Stable samples before arming", "type": "integer", "minimum": 1, "maximum": 20 }
-        }
-      },
-      "anchor_watch": {
-        "title": "Anchor watch",
-        "type": "object",
-        "properties": {
-          "enabled": { "title": "Enable anchor watch", "type": "boolean" },
-          "auto_arm": { "title": "Auto-arm after deployment", "type": "boolean" },
-          "deploy_threshold_m": { "title": "Deploy threshold, m", "type": "number" },
-          "onboard_threshold_m": { "title": "On-board threshold, m", "type": "number" },
-          "manual_radius_m": { "title": "Manual radius, m", "type": "number" },
-          "automatic_radius": { "title": "Automatic radius", "type": "boolean" },
-          "scope_multiplier": { "title": "Scope multiplier", "type": "number" },
-          "boat_length_m": { "title": "Boat length, m", "type": "number" },
-          "bow_offset_m": { "title": "Bow GPS offset, m", "type": "number" },
-          "gps_error_margin_m": { "title": "GPS error margin, m", "type": "number" },
-          "min_radius_m": { "title": "Minimum automatic radius, m", "type": "number" },
-          "arming_delay_ms": { "title": "Arming delay, ms", "type": "integer" },
-          "alarm_delay_ms": { "title": "Alarm delay, ms", "type": "integer" },
-          "clear_delay_ms": { "title": "Clear delay, ms", "type": "integer" },
-          "hysteresis_m": { "title": "Clear hysteresis, m", "type": "number" },
-          "waypoint_enabled": { "title": "Save waypoint locally", "type": "boolean" },
-          "waypoint_delete_on_disarm": { "title": "Delete waypoint on disarm", "type": "boolean" },
-          "n2k_publish_gnss": { "title": "Publish GPS PGNs", "type": "boolean" },
-          "n2k_anchor_watch_as_active_waypoint": { "title": "Publish anchor as active N2K waypoint", "type": "boolean" },
-          "anchor_position_strategy": { "title": "Anchor position strategy", "type": "string" },
-          "waypoint_id": { "title": "Waypoint ID", "type": "string" }
-        }
-      }
+      "gps_mode": { "title": "GPS mode", "type": "array", "format": "select", "uniqueItems": true, "items": { "type": "string", "enum": ["auto", "uart", "i2c", "disabled"] } },
+      "gps_rx_pin": { "title": "GPS UART RX pin (-1 disables)", "type": "integer", "minimum": -1, "maximum": 39 },
+      "gps_tx_pin": { "title": "GPS UART TX pin (-1 receive only)", "type": "integer", "minimum": -1, "maximum": 39 },
+      "gps_baud": { "title": "GPS baud (0 scans common bauds)", "type": "integer" },
+      "gps_publish_navigation_position": { "title": "Publish local GPS to navigation.*", "type": "boolean" },
+      "gps_min_satellites": { "title": "GPS minimum satellites", "type": "integer", "minimum": 1, "maximum": 16 },
+      "gps_max_hdop": { "title": "GPS maximum HDOP", "type": "number", "minimum": 0.5, "maximum": 10.0 },
+      "gps_max_fix_age_ms": { "title": "GPS maximum fix age, ms", "type": "integer", "minimum": 1000, "maximum": 60000 },
+      "gps_stable_samples": { "title": "GPS stable samples before arming", "type": "integer", "minimum": 1, "maximum": 20 },
+      "anchor_watch_enabled": { "title": "Enable anchor watch", "type": "boolean" },
+      "anchor_watch_auto_arm": { "title": "Anchor watch auto-arm after deployment", "type": "boolean" },
+      "anchor_watch_deploy_threshold_m": { "title": "Anchor watch deploy threshold, m", "type": "number" },
+      "anchor_watch_onboard_threshold_m": { "title": "Anchor watch on-board threshold, m", "type": "number" },
+      "anchor_watch_manual_radius_m": { "title": "Anchor watch manual radius, m", "type": "number" },
+      "anchor_watch_automatic_radius": { "title": "Anchor watch automatic radius", "type": "boolean" },
+      "anchor_watch_scope_multiplier": { "title": "Anchor watch scope multiplier", "type": "number" },
+      "anchor_watch_boat_length_m": { "title": "Anchor watch boat length, m", "type": "number" },
+      "anchor_watch_bow_offset_m": { "title": "Anchor watch bow GPS offset, m", "type": "number" },
+      "anchor_watch_gps_error_margin_m": { "title": "Anchor watch GPS error margin, m", "type": "number" },
+      "anchor_watch_min_radius_m": { "title": "Anchor watch minimum automatic radius, m", "type": "number" },
+      "anchor_watch_arming_delay_ms": { "title": "Anchor watch arming delay, ms", "type": "integer" },
+      "anchor_watch_alarm_delay_ms": { "title": "Anchor watch alarm delay, ms", "type": "integer" },
+      "anchor_watch_clear_delay_ms": { "title": "Anchor watch clear delay, ms", "type": "integer" },
+      "anchor_watch_hysteresis_m": { "title": "Anchor watch clear hysteresis, m", "type": "number" },
+      "anchor_watch_waypoint_enabled": { "title": "Anchor watch save waypoint locally", "type": "boolean" },
+      "anchor_watch_waypoint_delete_on_disarm": { "title": "Anchor watch delete waypoint on disarm", "type": "boolean" },
+      "anchor_watch_n2k_publish_gnss": { "title": "Anchor watch publish GPS PGNs", "type": "boolean" },
+      "anchor_watch_n2k_anchor_watch_as_active_waypoint": { "title": "Anchor watch publish anchor as active N2K waypoint", "type": "boolean" },
+      "anchor_watch_anchor_position_strategy": { "title": "Anchor watch anchor position strategy", "type": "array", "format": "select", "uniqueItems": true, "items": { "type": "string", "enum": ["weighted_set_fix", "current_fix"] } },
+      "anchor_watch_waypoint_id": { "title": "Anchor watch waypoint ID", "type": "string" },
+      "sk_rode_length": { "title": "Signal K rode length path", "type": "string" },
+      "sk_rode_speed": { "title": "Signal K rode speed path", "type": "string" },
+      "sk_direction": { "title": "Signal K direction path", "type": "string" },
+      "sk_state": { "title": "Signal K state path", "type": "string" },
+      "sk_command_status": { "title": "Signal K command status path", "type": "string" },
+      "sk_command_request": { "title": "Signal K command request path", "type": "string" },
+      "sk_pulses": { "title": "Signal K pulses path", "type": "string" },
+      "sk_meters_per_pulse": { "title": "Signal K meters per pulse path", "type": "string" },
+      "sk_faults": { "title": "Signal K faults path", "type": "string" },
+      "sk_mode": { "title": "Signal K mode path", "type": "string" },
+      "sk_freefall_detected": { "title": "Signal K free-fall detected path", "type": "string" },
+      "sk_anchor_detected": { "title": "Signal K anchor detected path", "type": "string" },
+      "sk_seafloor_detected": { "title": "Signal K seafloor detected path", "type": "string" },
+      "sk_event": { "title": "Signal K event path", "type": "string" },
+      "sk_notification": { "title": "Signal K notification path", "type": "string" }
     }
   })###";
 }

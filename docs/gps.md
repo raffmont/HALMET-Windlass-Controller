@@ -5,7 +5,7 @@ intended for standalone overnight use when Signal K or WiFi is unavailable.
 
 ## Configuration
 
-GPS settings live under `/Windlass/Configuration` in the nested `gps` object.
+GPS settings live under `/Windlass/Configuration` with `gps_*` field names.
 
 | Field | Default | Description |
 | --- | ---: | --- |

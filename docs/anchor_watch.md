@@ -24,7 +24,7 @@ anchor centre while still avoiding an immediate stale-position alarm.
 
 ## Automatic Arming And Disarming
 
-With `anchor_watch.enabled` and `anchor_watch.auto_arm` true, the watch arms
+With `anchor_watch_enabled` and `anchor_watch_auto_arm` true, the watch arms
 after all of these conditions remain true for `arming_delay_ms`:
 
 - GPS has a usable fix.
