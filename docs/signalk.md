@@ -2,6 +2,8 @@
 
 Signal K is the primary network interface. Values are published through SensESP
 `SKOutput*` objects, and remote commands are consumed with `StringSKListener`.
+Anchor watch can also subscribe to a Signal K position path when
+`gps_position_source = signalk`.
 
 ## Default Paths
 
@@ -31,14 +33,26 @@ Signal K is the primary network interface. Values are published through SensESP
 | `anchoring.anchorWatch.position.latitude` | number | deg | Stored anchor-watch centre latitude. |
 | `anchoring.anchorWatch.position.longitude` | number | deg | Stored anchor-watch centre longitude. |
 | `anchoring.anchorWatch.rodeLengthAtArm` | number | m | Deployed rode when the watch armed. |
-| `anchoring.anchorWatch.gnss.present` | boolean | - | Local GNSS sentences detected. |
-| `anchoring.anchorWatch.gnss.interface` | string | - | Current GPS interface. |
+| `anchoring.anchorWatch.gnss.present` | boolean | - | Selected position source has supplied a position. |
+| `anchoring.anchorWatch.gnss.interface` | string | - | Current position source: `uart`, `signalk`, `nmea2000`, or `disabled`. |
 | `anchoring.anchorWatch.gnss.fixValid` | boolean | - | Fix satisfies age, HDOP, satellite, and stability gates. |
 | `anchoring.anchorWatch.gnss.hdop` | number | - | Current HDOP. |
-| `anchoring.anchorWatch.gnss.satellites` | integer | - | Satellites reported by GGA. |
-| `anchoring.anchorWatch.gnss.position.latitude` | number | deg | Current local GNSS latitude. |
-| `anchoring.anchorWatch.gnss.position.longitude` | number | deg | Current local GNSS longitude. |
+| `anchoring.anchorWatch.gnss.satellites` | integer | - | Satellites reported by GGA, or the configured quality threshold for external sources. |
+| `anchoring.anchorWatch.gnss.position.latitude` | number | deg | Current selected-source latitude. |
+| `anchoring.anchorWatch.gnss.position.longitude` | number | deg | Current selected-source longitude. |
 | `notifications.anchoring.anchorWatch` | string | - | Compact JSON notification payload for anchor watch. |
+
+## Subscribed Position
+
+When `gps_position_source = signalk`, the firmware subscribes to
+`gps_sk_position_path`, which defaults to:
+
+```text
+navigation.position
+```
+
+The value must contain `latitude` and `longitude` in decimal degrees. The
+selected position is then republished under the anchor-watch GNSS status paths.
 
 ## Commands
 

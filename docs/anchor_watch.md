@@ -18,16 +18,17 @@ suspended
 fault
 ```
 
-At boot, a previously armed watch is restored as `suspended` until a usable GPS
-fix is available. This prevents a reboot from silently forgetting the saved
-anchor centre while still avoiding an immediate stale-position alarm.
+At boot, a previously armed watch is restored as `suspended` until the selected
+position source has a usable fix. This prevents a reboot from silently
+forgetting the saved anchor centre while still avoiding an immediate
+stale-position alarm.
 
 ## Automatic Arming And Disarming
 
 With `anchor_watch_enabled` and `anchor_watch_auto_arm` true, the watch arms
 after all of these conditions remain true for `arming_delay_ms`:
 
-- GPS has a usable fix.
+- The selected position source has a usable fix.
 - Deployed rode is at least `deploy_threshold_m`.
 - The windlass state indicates deployment, free-fall, seafloor detection, or
   anchor detection.
@@ -39,11 +40,12 @@ future code implements remote resource deletion.
 
 ## Anchor Centre And Radius
 
-During deployment, the firmware captures the latest stable GPS fix after the
-deployment threshold. On arm it uses that deployment candidate as the estimated
-anchor-watch centre; if no candidate exists, it falls back to the current GPS
-fix. The stored strategy string defaults to `weighted_set_fix`, but the current
-implementation is a conservative latest-good-deployment-fix approximation.
+During deployment, the firmware captures the latest stable position fix after
+the deployment threshold. On arm it uses that deployment candidate as the
+estimated anchor-watch centre; if no candidate exists, it falls back to the
+current position fix. The stored strategy string defaults to `weighted_set_fix`,
+but the current implementation is a conservative latest-good-deployment-fix
+approximation.
 
 Automatic radius is:
 
@@ -61,13 +63,13 @@ Set `automatic_radius` false to use `manual_radius_m`.
 
 ## Alarm Behavior
 
-The alarm distance is the haversine distance between the current GNSS position
-and the stored anchor centre.
+The alarm distance is the haversine distance between the current selected
+position source and the stored anchor centre.
 
 - Alarm becomes active when distance exceeds radius for `alarm_delay_ms`.
 - Alarm clears when distance is at least `hysteresis_m` inside the radius for
   `clear_delay_ms`.
-- GPS loss while armed emits a warning notification.
+- Position-source loss while armed emits a warning notification.
 
 ## Persistence
 

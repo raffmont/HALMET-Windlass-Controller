@@ -14,8 +14,9 @@ GP2 sensor -> HALMET D1 interrupt -> pulse counter -> chain model
                                                    -> Signal K outputs
                                                    -> NMEA 2000 PGNs
 
-UART GPS -> GPS manager -> anchor-watch state/radius/alarm -> Signal K outputs
-                                                    -> local NVS persistence
+UART GPS / Signal K / NMEA 2000 -> position manager -> anchor-watch state/radius/alarm
+                                                   -> Signal K outputs
+                                                   -> local NVS persistence
 
 Signal K command listener -> guarded command logic -> UP/DOWN relay outputs
 Manual UP/DOWN sense -----> direction and safety model
@@ -30,8 +31,9 @@ Manual UP/DOWN sense -----> direction and safety model
 5. SensESP `SKOutput*` objects publish Signal K state.
 6. The NMEA2000 library sends windlass PGNs from scheduled callbacks.
 7. The OLED display shows IP, mode, deployed chain, and speed when present.
-8. The GPS manager parses local NMEA 0183 sentences when configured.
-9. Anchor watch arms/disarms from rode state and GNSS quality, persists its
+8. The position manager consumes the configured source: local NMEA 0183,
+   Signal K `navigation.position`, or NMEA 2000 position PGNs.
+9. Anchor watch arms/disarms from rode state and position quality, persists its
    centre/radius in NVS, and publishes alarm/status values.
 
 ## Preserved HALMET/SensESP Pattern

@@ -3,10 +3,12 @@
 #include <Arduino.h>
 
 struct GpsConfig {
+  String position_source = "local";
   String mode = "auto";
   int rx_pin = -1;
   int tx_pin = -1;
   uint32_t baud = 9600;
+  String sk_position_path = "navigation.position";
   bool publish_navigation_position = false;
   uint8_t min_satellites = 5;
   float max_hdop = 2.5f;

@@ -38,16 +38,21 @@ or numeric inputs.
 
 ## GPS Fields
 
-GPS defaults to `gps_rx_pin = -1`, so no UART is opened until a tested spare pin
-is selected.
+`gps_position_source` chooses which position feed anchor watch uses. `local`
+uses the optional UART NMEA 0183 receiver, `signalk` subscribes to a Signal K
+position path, and `nmea2000` consumes incoming NMEA 2000 position PGNs. GPS
+defaults to `gps_rx_pin = -1`, so no UART is opened until a tested spare pin is
+selected.
 
 | Field | Default | Runtime effect |
 | --- | ---: | --- |
+| `gps_position_source` | `local` | Drop-down: `local`, `signalk`, or `nmea2000`. |
 | `gps_mode` | `auto` | Drop-down: `auto`, `uart`, `i2c`, or `disabled`. |
 | `gps_rx_pin` | `-1` | GPS UART RX pin. `-1` disables local UART GPS. |
 | `gps_tx_pin` | `-1` | Optional GPS UART TX pin. `-1` is receive-only. |
 | `gps_baud` | `9600` | GPS baud. `0` scans common baud rates. |
-| `gps_publish_navigation_position` | `false` | Publishes local GPS to `navigation.*` paths when enabled. |
+| `gps_sk_position_path` | `navigation.position` | Signal K position path used when `gps_position_source = signalk`. |
+| `gps_publish_navigation_position` | `false` | Reserved for publishing local GPS to `navigation.*` paths. |
 | `gps_min_satellites` | `5` | Required satellite count before a fix is usable. |
 | `gps_max_hdop` | `2.5` | Required horizontal dilution quality. |
 | `gps_max_fix_age_ms` | `10000` | Maximum age of the last fix before it is stale. |
@@ -56,7 +61,8 @@ is selected.
 ## Anchor Watch Fields
 
 Anchor watch may publish alarms and state, but it never commands windlass
-relays.
+relays. When `gps_position_source = nmea2000`, incoming PGN `129025` supplies
+position and PGN `129026` supplies optional COG/SOG.
 
 | Field | Default | Runtime effect |
 | --- | ---: | --- |
@@ -77,7 +83,7 @@ relays.
 | `anchor_watch_hysteresis_m` | `5.0` | Margin below radius required before alarm clear timing starts. |
 | `anchor_watch_waypoint_enabled` | `true` | Records the current anchor-watch waypoint state locally. |
 | `anchor_watch_waypoint_delete_on_disarm` | `false` | Deletes the saved waypoint state on disarm when enabled. |
-| `anchor_watch_n2k_publish_gnss` | `false` | Publishes local GNSS rapid-update PGNs when enabled. |
+| `anchor_watch_n2k_publish_gnss` | `false` | Publishes rapid position PGNs from the selected non-NMEA2000 source when enabled. |
 | `anchor_watch_n2k_anchor_watch_as_active_waypoint` | `false` | Reserved active-waypoint publishing switch. |
 | `anchor_watch_anchor_position_strategy` | `weighted_set_fix` | Drop-down: `weighted_set_fix` or `current_fix`. |
 | `anchor_watch_waypoint_id` | `halmet-anchor-watch-current` | Identifier used for the saved anchor-watch waypoint state. |

@@ -4,6 +4,7 @@
 #include <HardwareSerial.h>
 
 #include "gps_config.h"
+#include "sensesp/types/position.h"
 
 struct GpsFix {
   bool present = false;
@@ -26,10 +27,16 @@ class GpsManager {
   explicit GpsManager(GpsConfig* config);
   void begin();
   void update();
+  void updateFromSignalK(const sensesp::Position& position);
+  void updateFromNmea2000Position(double latitude, double longitude);
+  void updateFromNmea2000CogSog(double cog_rad, double sog_m_s);
   const GpsFix& fix() const { return fix_; }
   bool hasUsableFix() const;
 
  private:
+  bool acceptsSource(const String& source) const;
+  void acceptExternalPosition(const String& source, double latitude,
+                              double longitude);
   void beginUart(uint32_t baud);
   void processByte(char c);
   void processSentence(const String& sentence);

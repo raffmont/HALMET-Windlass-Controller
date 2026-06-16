@@ -31,6 +31,7 @@
 #include "sensesp/signalk/signalk_value_listener.h"
 #include "sensesp/system/lambda_consumer.h"
 #include "sensesp/transforms/lambda_transform.h"
+#include "sensesp/types/position.h"
 #include "sensesp/ui/config_item.h"
 #include "sensesp_app_builder.h"
 #include "windlass_config.h"
@@ -508,6 +509,7 @@ void sendWindlassMonitoringStatus() {
 
 void sendGpsRapidUpdates() {
   if (!gps_manager || !runtime_config->anchor_watch.n2k_publish_gnss ||
+      runtime_config->gps.position_source == "nmea2000" ||
       !gps_manager->hasUsableFix()) {
     return;
   }
@@ -530,6 +532,26 @@ void publishN2K() {
   sendWindlassControlStatus();
   sendWindlassMonitoringStatus();
   sendGpsRapidUpdates();
+}
+
+void handleN2kMessage(const tN2kMsg& message) {
+  if (!gps_manager) return;
+
+  if (message.PGN == 129025L) {
+    double latitude;
+    double longitude;
+    if (ParseN2kPGN129025(message, latitude, longitude)) {
+      gps_manager->updateFromNmea2000Position(latitude, longitude);
+    }
+  } else if (message.PGN == 129026L) {
+    unsigned char sid;
+    tN2kHeadingReference reference;
+    double cog;
+    double sog;
+    if (ParseN2kPGN129026(message, sid, reference, cog, sog)) {
+      gps_manager->updateFromNmea2000CogSog(cog, sog);
+    }
+  }
 }
 
 void updateController() {
@@ -667,6 +689,12 @@ void setupSignalK() {
       setFault(FaultInvalidCommand);
     }
   }));
+
+  auto position_listener =
+      new SKValueListener<Position>(runtime_config->gps.sk_position_path);
+  position_listener->connect_to(new LambdaConsumer<Position>([](Position input) {
+    if (gps_manager) gps_manager->updateFromSignalK(input);
+  }));
 }
 
 void setupPins() {
@@ -693,6 +721,7 @@ void setupN2K() {
                                   HALMET_WINDLASS_VERSION, "1");
   nmea2000->SetDeviceInformation(GetBoardSerialNumber(), 140, 35, 2046);
   nmea2000->SetMode(tNMEA2000::N2km_NodeOnly, DEVICE_INSTANCE);
+  nmea2000->SetMsgHandler(handleN2kMessage);
   nmea2000->EnableForward(false);
   state.n2k_started = nmea2000->Open();
   if (!state.n2k_started) setFault(FaultNmea2000Error);

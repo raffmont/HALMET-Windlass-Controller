@@ -75,10 +75,12 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
     root["seafloor_no_pulse_ms"] = seafloor_no_pulse_ms;
     root["seafloor_min_length_m"] = seafloor_min_length_m;
     root["anchor_detected_length_m"] = anchor_detected_length_m;
+    root["gps_position_source"] = gps.position_source;
     root["gps_mode"] = gps.mode;
     root["gps_rx_pin"] = gps.rx_pin;
     root["gps_tx_pin"] = gps.tx_pin;
     root["gps_baud"] = gps.baud;
+    root["gps_sk_position_path"] = gps.sk_position_path;
     root["gps_publish_navigation_position"] = gps.publish_navigation_position;
     root["gps_min_satellites"] = gps.min_satellites;
     root["gps_max_hdop"] = gps.max_hdop;
@@ -173,10 +175,12 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
       if (v >= 0.0 && v <= 10.0) anchor_detected_length_m = v;
     }
 
+    readStringValue(root["gps_position_source"], gps.position_source);
     readStringValue(root["gps_mode"], gps.mode);
     if (root["gps_rx_pin"].is<int>()) gps.rx_pin = root["gps_rx_pin"];
     if (root["gps_tx_pin"].is<int>()) gps.tx_pin = root["gps_tx_pin"];
     if (root["gps_baud"].is<uint32_t>()) gps.baud = root["gps_baud"];
+    if (root["gps_sk_position_path"].is<const char*>()) gps.sk_position_path = root["gps_sk_position_path"].as<String>();
     if (root["gps_publish_navigation_position"].is<bool>()) gps.publish_navigation_position = root["gps_publish_navigation_position"];
     if (root["gps_min_satellites"].is<uint8_t>()) gps.min_satellites = root["gps_min_satellites"];
     if (root["gps_max_hdop"].is<float>()) gps.max_hdop = root["gps_max_hdop"];
@@ -185,10 +189,12 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
 
     JsonObjectConst gps_config = root["gps"];
     if (!gps_config.isNull()) {
+      if (gps_config["position_source"].is<const char*>()) gps.position_source = gps_config["position_source"].as<String>();
       if (gps_config["mode"].is<const char*>()) gps.mode = gps_config["mode"].as<String>();
       if (gps_config["rx_pin"].is<int>()) gps.rx_pin = gps_config["rx_pin"];
       if (gps_config["tx_pin"].is<int>()) gps.tx_pin = gps_config["tx_pin"];
       if (gps_config["baud"].is<uint32_t>()) gps.baud = gps_config["baud"];
+      if (gps_config["sk_position_path"].is<const char*>()) gps.sk_position_path = gps_config["sk_position_path"].as<String>();
       if (gps_config["publish_navigation_position"].is<bool>()) gps.publish_navigation_position = gps_config["publish_navigation_position"];
       if (gps_config["min_satellites"].is<uint8_t>()) gps.min_satellites = gps_config["min_satellites"];
       if (gps_config["max_hdop"].is<float>()) gps.max_hdop = gps_config["max_hdop"];
@@ -302,11 +308,13 @@ inline const String ConfigSchema(const WindlassRuntimeConfig& obj) {
       "seafloor_no_pulse_ms": { "title": "Seafloor no-pulse time, ms", "type": "integer", "minimum": 250, "maximum": 10000 },
       "seafloor_min_length_m": { "title": "Seafloor minimum deployed length, m", "type": "number", "minimum": 0.0, "maximum": 20.0, "multipleOf": 0.1 },
       "anchor_detected_length_m": { "title": "Anchor detected length, m", "type": "number", "minimum": 0.0, "maximum": 10.0, "multipleOf": 0.01 },
+      "gps_position_source": { "title": "GPS position source", "type": "array", "format": "select", "uniqueItems": true, "items": { "type": "string", "enum": ["local", "signalk", "nmea2000"] } },
       "gps_mode": { "title": "GPS mode", "type": "array", "format": "select", "uniqueItems": true, "items": { "type": "string", "enum": ["auto", "uart", "i2c", "disabled"] } },
       "gps_rx_pin": { "title": "GPS UART RX pin (-1 disables)", "type": "integer", "minimum": -1, "maximum": 39 },
       "gps_tx_pin": { "title": "GPS UART TX pin (-1 receive only)", "type": "integer", "minimum": -1, "maximum": 39 },
       "gps_baud": { "title": "GPS baud (0 scans common bauds)", "type": "integer" },
-      "gps_publish_navigation_position": { "title": "Publish local GPS to navigation.*", "type": "boolean" },
+      "gps_sk_position_path": { "title": "Signal K position path", "type": "string" },
+      "gps_publish_navigation_position": { "title": "Reserved: publish local GPS to navigation.*", "type": "boolean" },
       "gps_min_satellites": { "title": "GPS minimum satellites", "type": "integer", "minimum": 1, "maximum": 16 },
       "gps_max_hdop": { "title": "GPS maximum HDOP", "type": "number", "minimum": 0.5, "maximum": 10.0 },
       "gps_max_fix_age_ms": { "title": "GPS maximum fix age, ms", "type": "integer", "minimum": 1000, "maximum": 60000 },
@@ -328,7 +336,7 @@ inline const String ConfigSchema(const WindlassRuntimeConfig& obj) {
       "anchor_watch_hysteresis_m": { "title": "Anchor watch clear hysteresis, m", "type": "number" },
       "anchor_watch_waypoint_enabled": { "title": "Anchor watch save waypoint locally", "type": "boolean" },
       "anchor_watch_waypoint_delete_on_disarm": { "title": "Anchor watch delete waypoint on disarm", "type": "boolean" },
-      "anchor_watch_n2k_publish_gnss": { "title": "Anchor watch publish GPS PGNs", "type": "boolean" },
+      "anchor_watch_n2k_publish_gnss": { "title": "Anchor watch publish position PGNs", "type": "boolean" },
       "anchor_watch_n2k_anchor_watch_as_active_waypoint": { "title": "Anchor watch publish anchor as active N2K waypoint", "type": "boolean" },
       "anchor_watch_anchor_position_strategy": { "title": "Anchor watch anchor position strategy", "type": "array", "format": "select", "uniqueItems": true, "items": { "type": "string", "enum": ["weighted_set_fix", "current_fix"] } },
       "anchor_watch_waypoint_id": { "title": "Anchor watch waypoint ID", "type": "string" },

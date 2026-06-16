@@ -16,7 +16,8 @@ bool isGnssSentence(const String& sentence) {
 GpsManager::GpsManager(GpsConfig* config) : config_(config) {}
 
 void GpsManager::begin() {
-  if (!config_ || config_->mode == "disabled" || config_->rx_pin < 0) {
+  if (!config_ || config_->position_source != "local" ||
+      config_->mode == "disabled" || config_->rx_pin < 0) {
     fix_.interface = "disabled";
     return;
   }
@@ -37,24 +38,30 @@ void GpsManager::beginUart(uint32_t baud) {
 }
 
 void GpsManager::update() {
-  if (!serial_ || config_->mode == "disabled" || config_->rx_pin < 0) return;
+  if (!config_) return;
+
+  const uint32_t now = millis();
+  if (fix_.last_fix_ms != 0 && now - fix_.last_fix_ms > config_->max_fix_age_ms) {
+    fix_.valid = false;
+    fix_.fix_type = "stale";
+    fix_.stable_count = 0;
+  }
+
+  if (!serial_ || config_->position_source != "local" ||
+      config_->mode == "disabled" || config_->rx_pin < 0) {
+    return;
+  }
 
   while (serial_->available() > 0) {
     processByte(static_cast<char>(serial_->read()));
   }
 
-  const uint32_t now = millis();
   if ((config_->mode == "auto" || config_->baud == 0) && !fix_.present &&
       now - last_scan_ms_ > 2500) {
     baud_index_ = (baud_index_ + 1) % kScanBaudCount;
     beginUart(kScanBauds[baud_index_]);
   }
 
-  if (fix_.last_fix_ms != 0 && now - fix_.last_fix_ms > config_->max_fix_age_ms) {
-    fix_.valid = false;
-    fix_.fix_type = "stale";
-    fix_.stable_count = 0;
-  }
 }
 
 bool GpsManager::hasUsableFix() const {
@@ -63,6 +70,44 @@ bool GpsManager::hasUsableFix() const {
          fix_.satellites >= config_->min_satellites &&
          fix_.hdop <= config_->max_hdop &&
          millis() - fix_.last_fix_ms <= config_->max_fix_age_ms;
+}
+
+void GpsManager::updateFromSignalK(const sensesp::Position& position) {
+  acceptExternalPosition("signalk", position.latitude, position.longitude);
+}
+
+void GpsManager::updateFromNmea2000Position(double latitude, double longitude) {
+  acceptExternalPosition("nmea2000", latitude, longitude);
+}
+
+void GpsManager::updateFromNmea2000CogSog(double cog_rad, double sog_m_s) {
+  if (!acceptsSource("nmea2000") || fix_.last_fix_ms == 0) return;
+  fix_.cog_deg = cog_rad * 180.0 / M_PI;
+  fix_.sog_m_s = sog_m_s;
+}
+
+bool GpsManager::acceptsSource(const String& source) const {
+  return config_ && config_->position_source == source;
+}
+
+void GpsManager::acceptExternalPosition(const String& source, double latitude,
+                                        double longitude) {
+  if (!acceptsSource(source)) return;
+  if (latitude == 0.0 && longitude == 0.0) return;
+  if (latitude < -90.0 || latitude > 90.0 || longitude < -180.0 ||
+      longitude > 180.0) {
+    return;
+  }
+
+  fix_.present = true;
+  fix_.latitude = latitude;
+  fix_.longitude = longitude;
+  fix_.last_fix_ms = millis();
+  fix_.interface = source;
+  fix_.fix_type = source;
+  fix_.satellites = config_->min_satellites;
+  fix_.hdop = config_->max_hdop;
+  updateQualityGate();
 }
 
 void GpsManager::processByte(char c) {

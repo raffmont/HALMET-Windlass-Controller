@@ -77,15 +77,16 @@ Start with these fields:
 | `stall_detect_ms` | Keep `3500` until dockside testing confirms pulse timing. |
 | `min_safe_length_m` | Keep `0.50` to prevent remote retrieval into the roller. |
 
-For GPS anchor watch, leave `gps_rx_pin = -1` until a safe spare UART RX pin has
-been selected and tested. Then set:
+For anchor-watch position, choose one source:
 
 | Field | Suggested first value |
 | --- | --- |
+| `gps_position_source` | `local` for a directly wired receiver, `signalk` for server `navigation.position`, or `nmea2000` for incoming NMEA 2000 PGN `129025`. |
 | `gps_mode` | `auto` |
-| `gps_rx_pin` | Tested spare UART RX pin, or `-1` to disable. |
+| `gps_rx_pin` | Tested spare UART RX pin for `local`, or `-1` when using `signalk` or `nmea2000`. |
 | `gps_tx_pin` | `-1` unless the receiver needs transmit wiring. |
 | `gps_baud` | `9600`, or `0` to scan common baud rates. |
+| `gps_sk_position_path` | `navigation.position` when using `signalk`. |
 | `anchor_watch_enabled` | `true` when GPS wiring and fix quality are verified. |
 | `anchor_watch_auto_arm` | `true` for automatic arming after deployment. |
 
@@ -141,10 +142,10 @@ to the real windlass control circuit.
 
 ## 8. Operate Anchor Watch
 
-Anchor watch uses local GPS and rode length to publish state and alarms. It does
-not command windlass relays.
+Anchor watch uses the selected position source and rode length to publish state
+and alarms. It does not command windlass relays.
 
-1. Configure and verify GPS input.
+1. Configure and verify `gps_position_source`.
 2. Wait for `anchoring.anchorWatch.gnss.fixValid = true`.
 3. Deploy more than `anchor_watch_deploy_threshold_m`.
 4. Keep the vessel stable until `anchor_watch_arming_delay_ms` expires.
