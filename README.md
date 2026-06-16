@@ -35,7 +35,8 @@ without replacing the SensESP/HALMET structure.
   incoming NMEA 2000 position PGNs, with automatic deployment arming, automatic
   retrieval disarming, persistent centre/radius state, and Signal K status
   outputs.
-- OLED status display when present.
+- OLED status display when present, including anchor-watch state and selected
+  position source. Display rows update only when their values change.
 - NMEA 2000 windlass telemetry PGNs `128776`, `128777`, and `128778`.
 
 ## Repository Layout
@@ -117,6 +118,7 @@ network shutdown.
 - [Architecture](docs/architecture.md)
 - [SensESP configuration](docs/sensesp_configuration.md)
 - [Signal K interface](docs/signalk.md)
+- [Signal K web app plugin](signalk/README.md)
 - [Free-fall and anchor events](docs/free_fall_anchor_events.md)
 - [Anchor watch](docs/anchor_watch.md)
 - [GPS/GNSS](docs/gps.md)

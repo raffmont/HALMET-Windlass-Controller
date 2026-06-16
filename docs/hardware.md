@@ -41,6 +41,10 @@ SCL = GPIO22
 ADS1115 address = 0x4b
 ```
 
+When fitted, the OLED shows host/IP, windlass mode, chain length, speed,
+anchor-watch state, and the selected position source. Each row is updated only
+when its displayed value changes.
+
 ## CAN / NMEA 2000
 
 ```text

@@ -19,7 +19,8 @@
 - [ ] Set `meters_per_pulse`; default GP2 value is `0.33`.
 - [ ] Keep `relay_active_high = true` for high-level-trigger relay modules.
 - [ ] Set the zero point with the anchor fully recovered but not over-tensioned.
-- [ ] Confirm the OLED shows IP, mode, chain length, and speed when fitted.
+- [ ] Confirm the OLED shows IP, mode, chain length, speed, anchor-watch state,
+      and position source when fitted.
 - [ ] If using GPS, set `gps_rx_pin`, confirm `gnss.present`, and wait for
       `gnss.fixValid` before testing anchor watch.
 

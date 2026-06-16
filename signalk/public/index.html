@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HALMET Windlass</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div>
+          <h1>HALMET Windlass</h1>
+          <p id="connection">Connecting</p>
+        </div>
+        <button id="stopButton" class="stop" type="button">STOP</button>
+      </section>
+
+      <section class="status-strip">
+        <div>
+          <span>Mode</span>
+          <strong data-field="mode">--</strong>
+        </div>
+        <div>
+          <span>Command</span>
+          <strong data-field="commandStatus">--</strong>
+        </div>
+        <div>
+          <span>Chain</span>
+          <strong><span data-field="rodeLength">--</span> m</strong>
+        </div>
+        <div>
+          <span>Speed</span>
+          <strong><span data-field="rodeSpeed">--</span> m/s</strong>
+        </div>
+      </section>
+
+      <section class="controls">
+        <button id="upButton" class="hold" type="button" data-command="up">UP</button>
+        <button id="downButton" class="hold" type="button" data-command="down">DOWN</button>
+      </section>
+
+      <section class="actions">
+        <button type="button" data-single-command="zero">Zero Counter</button>
+        <button type="button" data-single-command="reset">Reset Counter</button>
+        <button type="button" data-single-command="faults clear">Clear Faults</button>
+      </section>
+
+      <section class="grid">
+        <article>
+          <h2>Windlass</h2>
+          <dl>
+            <div><dt>Direction</dt><dd data-field="direction">--</dd></div>
+            <div><dt>State</dt><dd data-field="state">--</dd></div>
+            <div><dt>Faults</dt><dd data-field="faults">--</dd></div>
+            <div><dt>Pulses</dt><dd data-field="pulses">--</dd></div>
+            <div><dt>Meters per pulse</dt><dd data-field="metersPerPulse">--</dd></div>
+            <div><dt>Free-fall</dt><dd data-field="freeFallDetected">--</dd></div>
+            <div><dt>Anchor detected</dt><dd data-field="anchorDetected">--</dd></div>
+            <div><dt>Seafloor</dt><dd data-field="seafloorDetected">--</dd></div>
+            <div><dt>Latest event</dt><dd data-field="event">--</dd></div>
+          </dl>
+        </article>
+
+        <article>
+          <h2>Anchor Watch</h2>
+          <dl>
+            <div><dt>Enabled</dt><dd data-field="anchorWatchEnabled">--</dd></div>
+            <div><dt>Auto arm</dt><dd data-field="anchorWatchAutoArm">--</dd></div>
+            <div><dt>State</dt><dd data-field="anchorWatchState">--</dd></div>
+            <div><dt>Radius</dt><dd><span data-field="anchorWatchRadius">--</span> m</dd></div>
+            <div><dt>Distance</dt><dd><span data-field="anchorWatchDistance">--</span> m</dd></div>
+            <div><dt>Margin</dt><dd><span data-field="anchorWatchMargin">--</span> m</dd></div>
+            <div><dt>Rode at arm</dt><dd><span data-field="anchorWatchRodeAtArm">--</span> m</dd></div>
+          </dl>
+        </article>
+
+        <article>
+          <h2>Position</h2>
+          <dl>
+            <div><dt>Present</dt><dd data-field="gnssPresent">--</dd></div>
+            <div><dt>Source</dt><dd data-field="gnssInterface">--</dd></div>
+            <div><dt>Fix valid</dt><dd data-field="gnssFixValid">--</dd></div>
+            <div><dt>HDOP</dt><dd data-field="gnssHdop">--</dd></div>
+            <div><dt>Satellites</dt><dd data-field="gnssSatellites">--</dd></div>
+            <div><dt>Latitude</dt><dd data-field="gnssLatitude">--</dd></div>
+            <div><dt>Longitude</dt><dd data-field="gnssLongitude">--</dd></div>
+          </dl>
+        </article>
+
+        <article>
+          <h2>Notifications</h2>
+          <pre id="notifications">--</pre>
+        </article>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -30,7 +30,9 @@ Manual UP/DOWN sense -----> direction and safety model
 4. Event detection latches anchor deployment, free-fall, and seafloor estimates.
 5. SensESP `SKOutput*` objects publish Signal K state.
 6. The NMEA2000 library sends windlass PGNs from scheduled callbacks.
-7. The OLED display shows IP, mode, deployed chain, and speed when present.
+7. The OLED display shows IP, mode, deployed chain, speed, anchor-watch state,
+   and selected position source when present. Rows are redrawn only when their
+   values change.
 8. The position manager consumes the configured source: local NMEA 0183,
    Signal K `navigation.position`, or NMEA 2000 position PGNs.
 9. Anchor watch arms/disarms from rode state and position quality, persists its

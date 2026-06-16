@@ -8,6 +8,19 @@ namespace halmet {
 // OLED display width and height, in pixels
 const int kScreenWidth = 128;
 const int kScreenHeight = 64;
+const int kTextRows = kScreenHeight / 8;
+
+String displayed_rows[kTextRows];
+
+void PrintRowIfChanged(Adafruit_SSD1306* display, int row, const String& text) {
+  if (row < 0 || row >= kTextRows || displayed_rows[row] == text) return;
+
+  ClearRow(display, row);
+  display->setCursor(0, 8 * row);
+  display->print(text);
+  display->display();
+  displayed_rows[row] = text;
+}
 
 bool InitializeSSD1306(const std::shared_ptr<sensesp::SensESPBaseApp> sensesp_app,
                        Adafruit_SSD1306** display, TwoWire* i2c) {
@@ -23,7 +36,8 @@ bool InitializeSSD1306(const std::shared_ptr<sensesp::SensESPBaseApp> sensesp_ap
   (*display)->setTextSize(1);
   (*display)->setTextColor(SSD1306_WHITE);
   (*display)->setCursor(0, 0);
-  (*display)->printf("Host: %s\n", sensesp_app->get_hostname().c_str());
+  displayed_rows[0] = "Host: " + sensesp_app->get_hostname();
+  (*display)->print(displayed_rows[0]);
   (*display)->display();
 
   return true;
@@ -35,18 +49,14 @@ void ClearRow(Adafruit_SSD1306* display, int row) {
 }
 
 void PrintValue(Adafruit_SSD1306* display, int row, String title, float value) {
-  ClearRow(display, row);
-  display->setCursor(0, 8 * row);
-  display->printf("%s: %.1f", title.c_str(), value);
-  display->display();
+  char value_text[16];
+  snprintf(value_text, sizeof(value_text), "%.1f", value);
+  PrintRowIfChanged(display, row, title + " " + String(value_text));
 }
 
 void PrintValue(Adafruit_SSD1306* display, int row, String title,
                 String value) {
-  ClearRow(display, row);
-  display->setCursor(0, 8 * row);
-  display->printf("%s: %s", title.c_str(), value.c_str());
-  display->display();
+  PrintRowIfChanged(display, row, title + " " + value);
 }
 
 }  // namespace halmet

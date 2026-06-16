@@ -460,12 +460,13 @@ void publishState() {
   }
 
   if (display) {
-    ClearRow(display, 2);
-    ClearRow(display, 3);
-    ClearRow(display, 4);
     PrintValue(display, 2, "Mode:", mode_to_string(state.mode));
     PrintValue(display, 3, "Chain (m):", state.rode_length_m);
     PrintValue(display, 4, "Speed:", state.rode_speed_m_s);
+    PrintValue(display, 5, "Watch:",
+               anchor_watch ? String(anchor_watch->stateString()) : "none");
+    PrintValue(display, 6, "Pos:",
+               gps_manager ? gps_manager->fix().interface : "none");
   }
 }
 
@@ -786,7 +787,6 @@ void setup() {
   event_loop()->onRepeat(N2K_PUBLISH_PERIOD_MS, publishN2K);
   if (display_present) {
     event_loop()->onRepeat(1000, []() {
-      ClearRow(display, 1);
       PrintValue(display, 1, "IPx:", WiFi.localIP().toString());
     });
   }
