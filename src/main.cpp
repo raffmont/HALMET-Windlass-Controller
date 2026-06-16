@@ -88,8 +88,8 @@ SKOutputFloat* anchor_watch_gnss_lat_output = nullptr;
 SKOutputFloat* anchor_watch_gnss_lon_output = nullptr;
 SKOutputString* anchor_watch_notification_output = nullptr;
 
-const uint8_t kWindlassUpRelayPin = 17;
-const uint8_t kWindlassDownRelayPin = 16;
+const uint8_t kWindlassUpRelayPin = WINDLASS_UP_RELAY_PIN;
+const uint8_t kWindlassDownRelayPin = WINDLASS_DOWN_RELAY_PIN;
 
 const adsGain_t kADS1115Gain = GAIN_ONE;
 
@@ -674,6 +674,8 @@ void setupPins() {
   pinMode(kDigitalInputPin2, INPUT);
   pinMode(kDigitalInputPin3, INPUT);
   pinMode(kDigitalInputPin4, INPUT_PULLUP);
+  writeRelay(kWindlassUpRelayPin, false);
+  writeRelay(kWindlassDownRelayPin, false);
   pinMode(kWindlassUpRelayPin, OUTPUT);
   pinMode(kWindlassDownRelayPin, OUTPUT);
   writeRelay(kWindlassUpRelayPin, false);

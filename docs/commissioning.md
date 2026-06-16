@@ -5,8 +5,8 @@
 - [ ] Confirm the exact Quick GP2 wiring diagram for the installed model.
 - [ ] Confirm chain sensor type, polarity, and pulse distance.
 - [ ] Confirm HALMET board revision and input/output mapping.
-- [ ] Confirm relay module voltage, current rating, isolation, and trigger
-      polarity.
+- [ ] Confirm relay module voltage, current rating, isolation, and high-level
+      trigger polarity.
 - [ ] If using anchor watch, select and document a spare GPS UART RX pin for the
       exact HALMET revision.
 - [ ] Confirm the NMEA 2000 backbone has correct power and termination.
@@ -17,7 +17,7 @@
 - [ ] Configure WiFi and Signal K through the SensESP setup workflow.
 - [ ] Confirm `/Windlass/Configuration` appears in the SensESP UI.
 - [ ] Set `meters_per_pulse`; default GP2 value is `0.33`.
-- [ ] Set `relay_active_high` for the relay board.
+- [ ] Keep `relay_active_high = true` for high-level-trigger relay modules.
 - [ ] Set the zero point with the anchor fully recovered but not over-tensioned.
 - [ ] Confirm the OLED shows IP, mode, chain length, and speed when fitted.
 - [ ] If using GPS, set `gps.rx_pin`, confirm `gnss.present`, and wait for
@@ -25,7 +25,7 @@
 
 ## Bench And Dockside Tests
 
-- [ ] Relays remain off at boot and reset.
+- [ ] Relays remain off at boot and reset with relay inputs at GPIO LOW.
 - [ ] D1 sensor pulses increment while deploying.
 - [ ] D1 sensor pulses decrement while retrieving.
 - [ ] D2 manual UP sense changes direction/mode.

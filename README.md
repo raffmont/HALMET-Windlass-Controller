@@ -83,7 +83,9 @@ The project default environment is `halmet`.
 | I2C SDA/SCL | `GPIO21` / `GPIO22` |
 | NMEA 2000 CAN TX/RX | `GPIO19` / `GPIO18` |
 
-Relay trigger polarity is configurable with `relay_active_high`.
+The default relay configuration is for optocoupled high-level-trigger relay
+modules: `relay_active_high = true`, GPIO HIGH energizes the relay input, and
+GPIO LOW keeps it off. Keep `relay_active_high` enabled for those modules.
 
 ## Signal K Commands
 

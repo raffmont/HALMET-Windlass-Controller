@@ -10,6 +10,8 @@ wiring, and commissioning as safety critical.
 - Do not route motor current through HALMET.
 - Use isolated relay drivers or a relay module suitable for the contactor/control
   circuit.
+- The default configuration is for high-level-trigger relay inputs: GPIO HIGH
+  energizes a relay and GPIO LOW leaves it de-energized.
 - Wire remote outputs as normally-open dry contacts in parallel with the
   original UP/DOWN controls.
 - Ensure both relays are off during boot and reset.

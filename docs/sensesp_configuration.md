@@ -20,7 +20,7 @@ configuration.
 | `command_deadman_ms` | `1200` | Maximum age of a refreshed remote UP/DOWN command. |
 | `stall_detect_ms` | `3500` | Stops a remote command if no pulses arrive while running. |
 | `min_safe_length_m` | `0.50` | Prevents remote UP/retrieve below this deployed length. |
-| `relay_active_high` | `true` | Selects relay module input polarity. |
+| `relay_active_high` | `true` | Selects relay module input polarity. Default `true` is for high-level-trigger modules where GPIO HIGH energizes the relay input. |
 | `free_fall_detection_enabled` | `true` | Enables uncommanded payout detection. |
 | `seafloor_detection_enabled` | `true` | Enables pulse-stop seafloor estimate. |
 | `free_fall_min_speed_m_s` | `0.20` | Minimum speed for free-fall detection. |
@@ -77,5 +77,6 @@ Defaults are defined in `include/signalk_paths.h`.
 - Permanent calibration should be done through the SensESP configuration page.
 - The D4 reset input and Signal K `reset`/`zero` commands set the pulse count to
   zero.
-- Relay polarity must be tested with the windlass contactor disconnected before
-  motor tests.
+- For the default high-level-trigger relay module, keep `relay_active_high =
+  true`. Relay polarity must still be tested with the windlass contactor
+  disconnected before motor tests.

@@ -22,9 +22,14 @@ gypsy turn. The default calibration is `0.33 m/pulse`.
 | UP relay module input | `GPIO17` |
 | DOWN relay module input | `GPIO16` |
 
-The firmware exposes `relay_active_high` in `/Windlass/Configuration`. Test this
-with the windlass control circuit disconnected. A wrong polarity setting can
-energize a relay unexpectedly.
+The default firmware setting matches optocoupled high-level-trigger relay
+modules: `relay_active_high = true`, GPIO HIGH energizes the selected relay
+input, and GPIO LOW de-energizes it. Keep the relay board VCC/JD-VCC, input
+ground, and contact ratings matched to the installation.
+
+The firmware exposes `relay_active_high` in `/Windlass/Configuration` for other
+relay boards. Test this with the windlass control circuit disconnected. A wrong
+polarity setting can energize a relay unexpectedly.
 
 ## I2C And OLED
 

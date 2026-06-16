@@ -16,10 +16,10 @@
 #define WINDLASS_DOWN_SENSE_PIN 32
 #endif
 #ifndef WINDLASS_UP_RELAY_PIN
-#define WINDLASS_UP_RELAY_PIN 13
+#define WINDLASS_UP_RELAY_PIN 17
 #endif
 #ifndef WINDLASS_DOWN_RELAY_PIN
-#define WINDLASS_DOWN_RELAY_PIN 14
+#define WINDLASS_DOWN_RELAY_PIN 16
 #endif
 #ifndef STATUS_LED_PIN
 #define STATUS_LED_PIN 2
@@ -33,9 +33,9 @@
 #define ESP32_CAN_RX_PIN GPIO_NUM_4
 #endif
 
-// Option A: external two-channel relay module, driven by non-isolated HALMET
-// GPIOs. Runtime-configurable in SensESP setup; default assumes high-level
-// trigger modules.
+// External high-level-trigger relay module, driven by non-isolated HALMET
+// GPIOs. Runtime-configurable in SensESP setup; default energizes a relay when
+// the GPIO is HIGH.
 #define DEFAULT_RELAY_ACTIVE_HIGH 1
 #define SENSE_ACTIVE_HIGH 1
 
