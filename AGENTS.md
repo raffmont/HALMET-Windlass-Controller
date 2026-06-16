@@ -17,6 +17,8 @@ requests otherwise.
   match the board abstraction already present in the project.
 - Keep long-lived configuration in SensESP `ConfigItem` objects. Use ESP32 NVS
   only for runtime counters or state that is not naturally a web UI setting.
+- Keep anchor-watch and GPS behavior in the SensESP/event-loop model. Do not add
+  a standalone GPS polling loop or web server for this feature.
 
 ## Safety
 
@@ -25,6 +27,7 @@ requests otherwise.
 - STOP must remain immediate and idempotent.
 - Preserve the dead-man timeout, no-pulse stall stop, near-zero retrieval
   limit, and manual-control mutual exclusion behavior.
+- Anchor watch may publish alarms but must never command windlass relays.
 - Do not document or implement any behavior that bypasses the original breaker,
   fuses, contactor protection, manual controls, or emergency stop.
 

@@ -7,6 +7,8 @@
 - [ ] Confirm HALMET board revision and input/output mapping.
 - [ ] Confirm relay module voltage, current rating, isolation, and trigger
       polarity.
+- [ ] If using anchor watch, select and document a spare GPS UART RX pin for the
+      exact HALMET revision.
 - [ ] Confirm the NMEA 2000 backbone has correct power and termination.
 
 ## Firmware Setup
@@ -18,6 +20,8 @@
 - [ ] Set `relay_active_high` for the relay board.
 - [ ] Set the zero point with the anchor fully recovered but not over-tensioned.
 - [ ] Confirm the OLED shows IP, mode, chain length, and speed when fitted.
+- [ ] If using GPS, set `gps.rx_pin`, confirm `gnss.present`, and wait for
+      `gnss.fixValid` before testing anchor watch.
 
 ## Bench And Dockside Tests
 
@@ -32,3 +36,7 @@
 - [ ] `stop` de-energizes both relays.
 - [ ] NMEA 2000 PGNs are visible on the diagnostic tool or MFD.
 - [ ] Free-fall and seafloor events are tested with the motor disabled.
+- [ ] Anchor watch auto-arms only after the configured deployment threshold and
+      usable GPS fix.
+- [ ] Anchor watch auto-disarms when rode length returns below the on-board
+      threshold.

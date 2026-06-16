@@ -8,13 +8,17 @@
 #include <Adafruit_ADS1X15.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <N2kMessages.h>
 #include <NMEA2000_esp32.h>
 #include <Preferences.h>
 #include <climits>
 #include <cmath>
 #include <memory>
 
+#include "anchor_watch.h"
 #include "config.h"
+#include "geo_utils.h"
+#include "gps_manager.h"
 #include "halmet_const.h"
 #include "halmet_digital.h"
 #include "halmet_display.h"
@@ -45,6 +49,8 @@ tNMEA2000* nmea2000;
 Preferences prefs;
 ChainCounterState state;
 std::shared_ptr<WindlassRuntimeConfig> runtime_config;
+std::unique_ptr<GpsManager> gps_manager;
+std::unique_ptr<AnchorWatch> anchor_watch;
 portMUX_TYPE pulse_mux = portMUX_INITIALIZER_UNLOCKED;
 
 volatile uint32_t last_chain_pulse_isr_ms = 0;
@@ -64,6 +70,23 @@ SKOutputBool* anchor_detected_output = nullptr;
 SKOutputBool* seafloor_detected_output = nullptr;
 SKOutputString* event_output = nullptr;
 SKOutputString* notification_output = nullptr;
+SKOutputBool* anchor_watch_enabled_output = nullptr;
+SKOutputBool* anchor_watch_auto_arm_output = nullptr;
+SKOutputString* anchor_watch_state_output = nullptr;
+SKOutputFloat* anchor_watch_radius_output = nullptr;
+SKOutputFloat* anchor_watch_distance_output = nullptr;
+SKOutputFloat* anchor_watch_margin_output = nullptr;
+SKOutputFloat* anchor_watch_lat_output = nullptr;
+SKOutputFloat* anchor_watch_lon_output = nullptr;
+SKOutputFloat* anchor_watch_rode_at_arm_output = nullptr;
+SKOutputBool* anchor_watch_gnss_present_output = nullptr;
+SKOutputString* anchor_watch_gnss_interface_output = nullptr;
+SKOutputBool* anchor_watch_gnss_fix_valid_output = nullptr;
+SKOutputFloat* anchor_watch_gnss_hdop_output = nullptr;
+SKOutputInt* anchor_watch_gnss_sats_output = nullptr;
+SKOutputFloat* anchor_watch_gnss_lat_output = nullptr;
+SKOutputFloat* anchor_watch_gnss_lon_output = nullptr;
+SKOutputString* anchor_watch_notification_output = nullptr;
 
 const uint8_t kWindlassUpRelayPin = 17;
 const uint8_t kWindlassDownRelayPin = 16;
@@ -406,6 +429,35 @@ void publishState() {
     state.event_dirty = false;
   }
 
+  if (anchor_watch && gps_manager) {
+    const auto& snapshot = anchor_watch->snapshot();
+    const auto& fix = gps_manager->fix();
+    anchor_watch_enabled_output->emit(runtime_config->anchor_watch.enabled);
+    anchor_watch_auto_arm_output->emit(runtime_config->anchor_watch.auto_arm);
+    anchor_watch_state_output->emit(anchor_watch->stateString());
+    anchor_watch_radius_output->emit(snapshot.radius_m);
+    anchor_watch_distance_output->emit(snapshot.distance_m);
+    anchor_watch_margin_output->emit(snapshot.margin_m);
+    anchor_watch_lat_output->emit(snapshot.anchor_latitude);
+    anchor_watch_lon_output->emit(snapshot.anchor_longitude);
+    anchor_watch_rode_at_arm_output->emit(snapshot.rode_length_at_arm_m);
+    anchor_watch_gnss_present_output->emit(fix.present);
+    anchor_watch_gnss_interface_output->emit(fix.interface);
+    anchor_watch_gnss_fix_valid_output->emit(gps_manager->hasUsableFix());
+    anchor_watch_gnss_hdop_output->emit(fix.hdop);
+    anchor_watch_gnss_sats_output->emit(fix.satellites);
+    anchor_watch_gnss_lat_output->emit(fix.latitude);
+    anchor_watch_gnss_lon_output->emit(fix.longitude);
+    if (snapshot.notification_message.length() > 0) {
+      String payload = "{\"path\":\"" + snapshot.notification_path +
+                       "\",\"value\":{\"state\":\"" +
+                       snapshot.notification_state +
+                       "\",\"method\":[\"visual\",\"sound\"],\"message\":\"" +
+                       snapshot.notification_message + "\"}}";
+      anchor_watch_notification_output->emit(payload);
+    }
+  }
+
   if (display) {
     ClearRow(display, 2);
     ClearRow(display, 3);
@@ -454,19 +506,40 @@ void sendWindlassMonitoringStatus() {
   nmea2000->SendMsg(msg);
 }
 
+void sendGpsRapidUpdates() {
+  if (!gps_manager || !runtime_config->anchor_watch.n2k_publish_gnss ||
+      !gps_manager->hasUsableFix()) {
+    return;
+  }
+  static uint8_t sid = 0;
+  const auto& fix = gps_manager->fix();
+
+  tN2kMsg position_msg;
+  SetN2kLatLonRapid(position_msg, fix.latitude, fix.longitude);
+  nmea2000->SendMsg(position_msg);
+
+  tN2kMsg cog_sog_msg;
+  SetN2kCOGSOGRapid(cog_sog_msg, sid++, N2khr_true,
+                    degreesToRadians(fix.cog_deg), fix.sog_m_s);
+  nmea2000->SendMsg(cog_sog_msg);
+}
+
 void publishN2K() {
   if (!state.n2k_started) return;
   sendWindlassOperatingStatus();
   sendWindlassControlStatus();
   sendWindlassMonitoringStatus();
+  sendGpsRapidUpdates();
 }
 
 void updateController() {
   applyRuntimeConfig();
+  if (gps_manager) gps_manager->update();
   updateManualSense();
   updateDerivedValues();
   updateEventDetection();
   enforceSafety();
+  if (anchor_watch) anchor_watch->update(state);
   saveRuntimeCountersThrottled();
 }
 
@@ -529,6 +602,56 @@ void setupSignalK() {
       new SKOutputString(runtime_config->sk_event, "/Windlass/Signal K/Event");
   notification_output = new SKOutputString(
       runtime_config->sk_notification, "/Windlass/Signal K/Notification");
+  anchor_watch_enabled_output = new SKOutputBool(
+      DEFAULT_SK_ANCHOR_WATCH_ENABLED, "/Anchor Watch/Signal K/Enabled");
+  anchor_watch_auto_arm_output = new SKOutputBool(
+      DEFAULT_SK_ANCHOR_WATCH_AUTO_ARM, "/Anchor Watch/Signal K/Auto Arm");
+  anchor_watch_state_output = new SKOutputString(
+      DEFAULT_SK_ANCHOR_WATCH_STATE, "/Anchor Watch/Signal K/State");
+  anchor_watch_radius_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_RADIUS, "/Anchor Watch/Signal K/Radius",
+      makeMetadata("m", "Anchor watch alarm radius", "Anchor Watch Radius",
+                   "Radius"));
+  anchor_watch_distance_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_DISTANCE, "/Anchor Watch/Signal K/Distance",
+      makeMetadata("m", "Distance from anchor watch centre",
+                   "Anchor Watch Distance", "Distance"));
+  anchor_watch_margin_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_MARGIN, "/Anchor Watch/Signal K/Margin",
+      makeMetadata("m", "Distance minus anchor watch radius",
+                   "Anchor Watch Margin", "Margin"));
+  anchor_watch_lat_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_POSITION_LAT,
+      "/Anchor Watch/Signal K/Anchor Latitude");
+  anchor_watch_lon_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_POSITION_LON,
+      "/Anchor Watch/Signal K/Anchor Longitude");
+  anchor_watch_rode_at_arm_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_RODE_AT_ARM,
+      "/Anchor Watch/Signal K/Rode At Arm");
+  anchor_watch_gnss_present_output = new SKOutputBool(
+      DEFAULT_SK_ANCHOR_WATCH_GNSS_PRESENT,
+      "/Anchor Watch/Signal K/GNSS Present");
+  anchor_watch_gnss_interface_output = new SKOutputString(
+      DEFAULT_SK_ANCHOR_WATCH_GNSS_INTERFACE,
+      "/Anchor Watch/Signal K/GNSS Interface");
+  anchor_watch_gnss_fix_valid_output = new SKOutputBool(
+      DEFAULT_SK_ANCHOR_WATCH_GNSS_FIX_VALID,
+      "/Anchor Watch/Signal K/GNSS Fix Valid");
+  anchor_watch_gnss_hdop_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_GNSS_HDOP, "/Anchor Watch/Signal K/GNSS HDOP");
+  anchor_watch_gnss_sats_output = new SKOutputInt(
+      DEFAULT_SK_ANCHOR_WATCH_GNSS_SATS,
+      "/Anchor Watch/Signal K/GNSS Satellites");
+  anchor_watch_gnss_lat_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_GNSS_LAT,
+      "/Anchor Watch/Signal K/GNSS Latitude");
+  anchor_watch_gnss_lon_output = new SKOutputFloat(
+      DEFAULT_SK_ANCHOR_WATCH_GNSS_LON,
+      "/Anchor Watch/Signal K/GNSS Longitude");
+  anchor_watch_notification_output = new SKOutputString(
+      DEFAULT_SK_ANCHOR_WATCH_NOTIFICATION,
+      "/Anchor Watch/Signal K/Notification");
 
   auto command_listener =
       new StringSKListener(runtime_config->sk_command_request);
@@ -613,6 +736,12 @@ void setup() {
   state.pulses_total = prefs.getLong64("pulses", 0);
   state.last_pulse_ms = millis();
 
+  gps_manager = std::make_unique<GpsManager>(&runtime_config->gps);
+  gps_manager->begin();
+  anchor_watch = std::make_unique<AnchorWatch>(&runtime_config->anchor_watch,
+                                               gps_manager.get(), &prefs);
+  anchor_watch->begin();
+
   setupPins();
   setupResetInput();
   setupSignalK();
@@ -627,7 +756,7 @@ void setup() {
   if (display_present) {
     event_loop()->onRepeat(1000, []() {
       ClearRow(display, 1);
-      PrintValue(display, 1, "IP:", WiFi.localIP().toString());
+      PrintValue(display, 1, "IPx:", WiFi.localIP().toString());
     });
   }
 

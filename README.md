@@ -31,6 +31,9 @@ without replacing the SensESP/HALMET structure.
 - Signal K status, fault, event, and command paths.
 - Free-fall, anchor-detected, seafloor-detected, and anchor-alarm-suggested
   events.
+- Standalone UART GNSS based anchor watch with automatic deployment arming,
+  automatic retrieval disarming, persistent centre/radius state, and Signal K
+  status outputs.
 - OLED status display when present.
 - NMEA 2000 windlass telemetry PGNs `128776`, `128777`, and `128778`.
 
@@ -111,6 +114,8 @@ network shutdown.
 - [SensESP configuration](docs/sensesp_configuration.md)
 - [Signal K interface](docs/signalk.md)
 - [Free-fall and anchor events](docs/free_fall_anchor_events.md)
+- [Anchor watch](docs/anchor_watch.md)
+- [GPS/GNSS](docs/gps.md)
 - [NMEA 2000](docs/nmea2000.md)
 - [Hardware notes](docs/hardware.md)
 - [Safety notes](docs/safety.md)

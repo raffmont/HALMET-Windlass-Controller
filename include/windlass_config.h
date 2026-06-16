@@ -4,6 +4,8 @@
 #include <ArduinoJson.h>
 
 #include "config.h"
+#include "anchor_watch_config.h"
+#include "gps_config.h"
 #include "sensesp/system/saveable.h"
 #include "signalk_paths.h"
 
@@ -25,6 +27,8 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
   uint32_t seafloor_no_pulse_ms = DEFAULT_SEAFLOOR_NO_PULSE_MS;
   double seafloor_min_length_m = DEFAULT_SEAFLOOR_MIN_LENGTH_M;
   double anchor_detected_length_m = DEFAULT_ANCHOR_DETECTED_LENGTH_M;
+  GpsConfig gps;
+  AnchorWatchConfig anchor_watch;
 
   String sk_rode_length = DEFAULT_SK_RODE_LENGTH;
   String sk_rode_speed = DEFAULT_SK_RODE_SPEED;
@@ -56,6 +60,40 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
     root["seafloor_no_pulse_ms"] = seafloor_no_pulse_ms;
     root["seafloor_min_length_m"] = seafloor_min_length_m;
     root["anchor_detected_length_m"] = anchor_detected_length_m;
+    JsonObject gps_config = root["gps"].to<JsonObject>();
+    gps_config["mode"] = gps.mode;
+    gps_config["rx_pin"] = gps.rx_pin;
+    gps_config["tx_pin"] = gps.tx_pin;
+    gps_config["baud"] = gps.baud;
+    gps_config["publish_navigation_position"] = gps.publish_navigation_position;
+    gps_config["min_satellites"] = gps.min_satellites;
+    gps_config["max_hdop"] = gps.max_hdop;
+    gps_config["max_fix_age_ms"] = gps.max_fix_age_ms;
+    gps_config["stable_samples"] = gps.stable_samples;
+
+    JsonObject aw = root["anchor_watch"].to<JsonObject>();
+    aw["enabled"] = anchor_watch.enabled;
+    aw["auto_arm"] = anchor_watch.auto_arm;
+    aw["deploy_threshold_m"] = anchor_watch.deploy_threshold_m;
+    aw["onboard_threshold_m"] = anchor_watch.onboard_threshold_m;
+    aw["manual_radius_m"] = anchor_watch.manual_radius_m;
+    aw["automatic_radius"] = anchor_watch.automatic_radius;
+    aw["scope_multiplier"] = anchor_watch.scope_multiplier;
+    aw["boat_length_m"] = anchor_watch.boat_length_m;
+    aw["bow_offset_m"] = anchor_watch.bow_offset_m;
+    aw["gps_error_margin_m"] = anchor_watch.gps_error_margin_m;
+    aw["min_radius_m"] = anchor_watch.min_radius_m;
+    aw["arming_delay_ms"] = anchor_watch.arming_delay_ms;
+    aw["alarm_delay_ms"] = anchor_watch.alarm_delay_ms;
+    aw["clear_delay_ms"] = anchor_watch.clear_delay_ms;
+    aw["hysteresis_m"] = anchor_watch.hysteresis_m;
+    aw["waypoint_enabled"] = anchor_watch.waypoint_enabled;
+    aw["waypoint_delete_on_disarm"] = anchor_watch.waypoint_delete_on_disarm;
+    aw["n2k_publish_gnss"] = anchor_watch.n2k_publish_gnss;
+    aw["n2k_anchor_watch_as_active_waypoint"] =
+        anchor_watch.n2k_anchor_watch_as_active_waypoint;
+    aw["anchor_position_strategy"] = anchor_watch.anchor_position_strategy;
+    aw["waypoint_id"] = anchor_watch.waypoint_id;
 
     JsonObject paths = root["signalk_paths"].to<JsonObject>();
     paths["rode_length"] = sk_rode_length;
@@ -121,6 +159,44 @@ struct WindlassRuntimeConfig : public sensesp::FileSystemSaveable {
       if (v >= 0.0 && v <= 10.0) anchor_detected_length_m = v;
     }
 
+    JsonObjectConst gps_config = root["gps"];
+    if (!gps_config.isNull()) {
+      if (gps_config["mode"].is<const char*>()) gps.mode = gps_config["mode"].as<String>();
+      if (gps_config["rx_pin"].is<int>()) gps.rx_pin = gps_config["rx_pin"];
+      if (gps_config["tx_pin"].is<int>()) gps.tx_pin = gps_config["tx_pin"];
+      if (gps_config["baud"].is<uint32_t>()) gps.baud = gps_config["baud"];
+      if (gps_config["publish_navigation_position"].is<bool>()) gps.publish_navigation_position = gps_config["publish_navigation_position"];
+      if (gps_config["min_satellites"].is<uint8_t>()) gps.min_satellites = gps_config["min_satellites"];
+      if (gps_config["max_hdop"].is<float>()) gps.max_hdop = gps_config["max_hdop"];
+      if (gps_config["max_fix_age_ms"].is<uint32_t>()) gps.max_fix_age_ms = gps_config["max_fix_age_ms"];
+      if (gps_config["stable_samples"].is<uint8_t>()) gps.stable_samples = gps_config["stable_samples"];
+    }
+
+    JsonObjectConst aw = root["anchor_watch"];
+    if (!aw.isNull()) {
+      if (aw["enabled"].is<bool>()) anchor_watch.enabled = aw["enabled"];
+      if (aw["auto_arm"].is<bool>()) anchor_watch.auto_arm = aw["auto_arm"];
+      if (aw["deploy_threshold_m"].is<float>()) anchor_watch.deploy_threshold_m = aw["deploy_threshold_m"];
+      if (aw["onboard_threshold_m"].is<float>()) anchor_watch.onboard_threshold_m = aw["onboard_threshold_m"];
+      if (aw["manual_radius_m"].is<float>()) anchor_watch.manual_radius_m = aw["manual_radius_m"];
+      if (aw["automatic_radius"].is<bool>()) anchor_watch.automatic_radius = aw["automatic_radius"];
+      if (aw["scope_multiplier"].is<float>()) anchor_watch.scope_multiplier = aw["scope_multiplier"];
+      if (aw["boat_length_m"].is<float>()) anchor_watch.boat_length_m = aw["boat_length_m"];
+      if (aw["bow_offset_m"].is<float>()) anchor_watch.bow_offset_m = aw["bow_offset_m"];
+      if (aw["gps_error_margin_m"].is<float>()) anchor_watch.gps_error_margin_m = aw["gps_error_margin_m"];
+      if (aw["min_radius_m"].is<float>()) anchor_watch.min_radius_m = aw["min_radius_m"];
+      if (aw["arming_delay_ms"].is<uint32_t>()) anchor_watch.arming_delay_ms = aw["arming_delay_ms"];
+      if (aw["alarm_delay_ms"].is<uint32_t>()) anchor_watch.alarm_delay_ms = aw["alarm_delay_ms"];
+      if (aw["clear_delay_ms"].is<uint32_t>()) anchor_watch.clear_delay_ms = aw["clear_delay_ms"];
+      if (aw["hysteresis_m"].is<float>()) anchor_watch.hysteresis_m = aw["hysteresis_m"];
+      if (aw["waypoint_enabled"].is<bool>()) anchor_watch.waypoint_enabled = aw["waypoint_enabled"];
+      if (aw["waypoint_delete_on_disarm"].is<bool>()) anchor_watch.waypoint_delete_on_disarm = aw["waypoint_delete_on_disarm"];
+      if (aw["n2k_publish_gnss"].is<bool>()) anchor_watch.n2k_publish_gnss = aw["n2k_publish_gnss"];
+      if (aw["n2k_anchor_watch_as_active_waypoint"].is<bool>()) anchor_watch.n2k_anchor_watch_as_active_waypoint = aw["n2k_anchor_watch_as_active_waypoint"];
+      if (aw["anchor_position_strategy"].is<const char*>()) anchor_watch.anchor_position_strategy = aw["anchor_position_strategy"].as<String>();
+      if (aw["waypoint_id"].is<const char*>()) anchor_watch.waypoint_id = aw["waypoint_id"].as<String>();
+    }
+
     JsonObjectConst paths = root["signalk_paths"];
     if (!paths.isNull()) {
       if (paths["rode_length"].is<const char*>()) sk_rode_length = paths["rode_length"].as<String>();
@@ -162,7 +238,49 @@ inline const String ConfigSchema(const WindlassRuntimeConfig& obj) {
       "free_fall_min_pulses": { "title": "Free-fall minimum pulses", "type": "integer", "minimum": 1, "maximum": 50 },
       "seafloor_no_pulse_ms": { "title": "Seafloor no-pulse time, ms", "type": "integer", "minimum": 250, "maximum": 10000 },
       "seafloor_min_length_m": { "title": "Seafloor minimum deployed length, m", "type": "number", "minimum": 0.0, "maximum": 20.0, "multipleOf": 0.1 },
-      "anchor_detected_length_m": { "title": "Anchor detected length, m", "type": "number", "minimum": 0.0, "maximum": 10.0, "multipleOf": 0.01 }
+      "anchor_detected_length_m": { "title": "Anchor detected length, m", "type": "number", "minimum": 0.0, "maximum": 10.0, "multipleOf": 0.01 },
+      "gps": {
+        "title": "GPS/GNSS",
+        "type": "object",
+        "properties": {
+          "mode": { "title": "GPS mode", "type": "string", "enum": ["auto", "uart", "i2c", "disabled"] },
+          "rx_pin": { "title": "GPS UART RX pin (-1 disables)", "type": "integer", "minimum": -1, "maximum": 39 },
+          "tx_pin": { "title": "GPS UART TX pin (-1 receive only)", "type": "integer", "minimum": -1, "maximum": 39 },
+          "baud": { "title": "GPS baud (0 scans common bauds)", "type": "integer" },
+          "publish_navigation_position": { "title": "Publish local GPS to navigation.*", "type": "boolean" },
+          "min_satellites": { "title": "Minimum satellites", "type": "integer", "minimum": 1, "maximum": 16 },
+          "max_hdop": { "title": "Maximum HDOP", "type": "number", "minimum": 0.5, "maximum": 10.0 },
+          "max_fix_age_ms": { "title": "Maximum fix age, ms", "type": "integer", "minimum": 1000, "maximum": 60000 },
+          "stable_samples": { "title": "Stable samples before arming", "type": "integer", "minimum": 1, "maximum": 20 }
+        }
+      },
+      "anchor_watch": {
+        "title": "Anchor watch",
+        "type": "object",
+        "properties": {
+          "enabled": { "title": "Enable anchor watch", "type": "boolean" },
+          "auto_arm": { "title": "Auto-arm after deployment", "type": "boolean" },
+          "deploy_threshold_m": { "title": "Deploy threshold, m", "type": "number" },
+          "onboard_threshold_m": { "title": "On-board threshold, m", "type": "number" },
+          "manual_radius_m": { "title": "Manual radius, m", "type": "number" },
+          "automatic_radius": { "title": "Automatic radius", "type": "boolean" },
+          "scope_multiplier": { "title": "Scope multiplier", "type": "number" },
+          "boat_length_m": { "title": "Boat length, m", "type": "number" },
+          "bow_offset_m": { "title": "Bow GPS offset, m", "type": "number" },
+          "gps_error_margin_m": { "title": "GPS error margin, m", "type": "number" },
+          "min_radius_m": { "title": "Minimum automatic radius, m", "type": "number" },
+          "arming_delay_ms": { "title": "Arming delay, ms", "type": "integer" },
+          "alarm_delay_ms": { "title": "Alarm delay, ms", "type": "integer" },
+          "clear_delay_ms": { "title": "Clear delay, ms", "type": "integer" },
+          "hysteresis_m": { "title": "Clear hysteresis, m", "type": "number" },
+          "waypoint_enabled": { "title": "Save waypoint locally", "type": "boolean" },
+          "waypoint_delete_on_disarm": { "title": "Delete waypoint on disarm", "type": "boolean" },
+          "n2k_publish_gnss": { "title": "Publish GPS PGNs", "type": "boolean" },
+          "n2k_anchor_watch_as_active_waypoint": { "title": "Publish anchor as active N2K waypoint", "type": "boolean" },
+          "anchor_position_strategy": { "title": "Anchor position strategy", "type": "string" },
+          "waypoint_id": { "title": "Waypoint ID", "type": "string" }
+        }
+      }
     }
   })###";
 }

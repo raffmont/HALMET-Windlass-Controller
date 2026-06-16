@@ -25,6 +25,10 @@ wiring, and commissioning as safety critical.
 - Manual UP or DOWN activity blocks remote relay commands.
 - Simultaneous manual UP and DOWN sense stops relays and raises a fault.
 - STOP is accepted immediately.
+- Anchor watch never energizes relays. It only observes chain/GNSS state and
+  publishes local/Signal K alarm status.
+- Do not treat anchor-watch GPS alarms as a substitute for watchkeeping, anchor
+  gear inspection, or a certified navigation alarm.
 
 ## Test Sequence
 

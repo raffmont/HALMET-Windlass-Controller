@@ -29,6 +29,24 @@ configuration.
 | `seafloor_min_length_m` | `1.00` | Minimum deployed length before seafloor detection. |
 | `anchor_detected_length_m` | `0.33` | Length threshold for initial anchor deployment. |
 
+Nested `gps` and `anchor_watch` objects configure the standalone anchor-watch
+feature. GPS defaults to `rx_pin = -1`, so no UART is opened until a tested spare
+pin is selected.
+
+Key anchor-watch defaults:
+
+| Field | Default | Runtime effect |
+| --- | ---: | --- |
+| `gps.min_satellites` | `5` | Required satellite count before a fix is usable. |
+| `gps.max_hdop` | `2.5` | Required horizontal dilution quality. |
+| `gps.stable_samples` | `5` | Consecutive valid fixes before arming. |
+| `anchor_watch.enabled` | `true` | Enables the state machine. |
+| `anchor_watch.auto_arm` | `true` | Arms from deployment state and GPS quality. |
+| `anchor_watch.deploy_threshold_m` | `5.0` | Deployed rode needed before arming. |
+| `anchor_watch.onboard_threshold_m` | `0.5` | Rode length used for automatic disarm. |
+| `anchor_watch.automatic_radius` | `true` | Calculates radius from rode, vessel, and GPS margins. |
+| `anchor_watch.manual_radius_m` | `35.0` | Radius used when automatic radius is off. |
+
 ## Signal K Path Fields
 
 The same configuration object stores editable Signal K paths:

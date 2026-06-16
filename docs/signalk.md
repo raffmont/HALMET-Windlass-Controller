@@ -22,6 +22,23 @@ Signal K is the primary network interface. Values are published through SensESP
 | `anchoring.windlass.anchor.seafloorDetected` | boolean | - | Latched seafloor estimate. |
 | `anchoring.windlass.event` | string | - | Latest event name. |
 | `notifications.anchoring.windlass` | string | - | Advisory event/fault message. |
+| `anchoring.anchorWatch.enabled` | boolean | - | Anchor-watch configuration state. |
+| `anchoring.anchorWatch.autoArm` | boolean | - | Auto-arm configuration state. |
+| `anchoring.anchorWatch.state` | string | - | `disabled`, `waitingForGps`, `ready`, `armed`, `alarm`, `suspended`, or `fault`. |
+| `anchoring.anchorWatch.radius` | number | m | Active alarm radius. |
+| `anchoring.anchorWatch.distance` | number | m | Current distance from stored centre. |
+| `anchoring.anchorWatch.margin` | number | m | Distance minus radius. |
+| `anchoring.anchorWatch.position.latitude` | number | deg | Stored anchor-watch centre latitude. |
+| `anchoring.anchorWatch.position.longitude` | number | deg | Stored anchor-watch centre longitude. |
+| `anchoring.anchorWatch.rodeLengthAtArm` | number | m | Deployed rode when the watch armed. |
+| `anchoring.anchorWatch.gnss.present` | boolean | - | Local GNSS sentences detected. |
+| `anchoring.anchorWatch.gnss.interface` | string | - | Current GPS interface. |
+| `anchoring.anchorWatch.gnss.fixValid` | boolean | - | Fix satisfies age, HDOP, satellite, and stability gates. |
+| `anchoring.anchorWatch.gnss.hdop` | number | - | Current HDOP. |
+| `anchoring.anchorWatch.gnss.satellites` | integer | - | Satellites reported by GGA. |
+| `anchoring.anchorWatch.gnss.position.latitude` | number | deg | Current local GNSS latitude. |
+| `anchoring.anchorWatch.gnss.position.longitude` | number | deg | Current local GNSS longitude. |
+| `notifications.anchoring.anchorWatch` | string | - | Compact JSON notification payload for anchor watch. |
 
 ## Commands
 

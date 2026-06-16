@@ -45,3 +45,14 @@ CAN RX = GPIO18
 
 Keep NMEA 2000 wiring compliant with the vessel backbone requirements, including
 drop length, power injection, shielding, and termination.
+
+## Optional GPS/GNSS
+
+Anchor watch can use an external UART NMEA 0183 GNSS receiver. GPS RX is
+disabled by default (`gps.rx_pin = -1`) because safe spare GPIO availability
+depends on the exact HALMET revision and installation. Do not reuse D1-D4, relay
+outputs, I2C, or CAN pins.
+
+Configure the selected RX pin, optional TX pin, and baud rate in
+`/Windlass/Configuration` after verifying the pin is exposed and electrically
+compatible with the receiver.
