@@ -74,6 +74,9 @@ network loss, or application shutdown.
 `stop` is always accepted. `reset` and `zero` set the chain counter to zero.
 `faults clear` clears the current fault bitmask.
 
+Unknown command strings are rejected, stop the relays, and set
+`FaultInvalidCommand`.
+
 ## Recommended UI Behavior
 
 - Use press-and-hold controls for UP and DOWN.

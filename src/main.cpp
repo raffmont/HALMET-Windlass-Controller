@@ -366,10 +366,15 @@ void enforceSafety() {
     stopWindlass(FaultCommandTimeout);
   } else if (now - state.command_started_ms > MAX_RELAY_ON_MS) {
     stopWindlass(FaultCommandTimeout);
-  } else if (state.last_pulse_ms != 0 && now - state.last_pulse_ms > stall_detect) {
-    stopWindlass(FaultNoPulsesWhileRunning);
-  } else if (commandWouldViolateLimits(state.active_command)) {
-    stopWindlass(FaultNearZeroLimit);
+  } else {
+    const uint32_t last_motion_ms =
+        state.last_pulse_ms > state.command_started_ms ? state.last_pulse_ms
+                                                       : state.command_started_ms;
+    if (now - last_motion_ms > stall_detect) {
+      stopWindlass(FaultNoPulsesWhileRunning);
+    } else if (commandWouldViolateLimits(state.active_command)) {
+      stopWindlass(FaultNearZeroLimit);
+    }
   }
 }
 
@@ -686,8 +691,12 @@ void setupSignalK() {
       markEvent(WindlassEvent::None);
     } else if (input == "faults clear") {
       state.fault_flags = FaultNone;
-    } else if (!applyCommand(command_from_string(input), true)) {
-      setFault(FaultInvalidCommand);
+    } else {
+      WindlassCommand command = WindlassCommand::Stop;
+      if (!parse_command_from_string(input, command) ||
+          !applyCommand(command, true)) {
+        stopWindlass(FaultInvalidCommand);
+      }
     }
   }));
 

@@ -131,12 +131,25 @@ inline const char* command_to_string(WindlassCommand command) {
   }
 }
 
-inline WindlassCommand command_from_string(const String& value) {
+inline bool parse_command_from_string(const String& value,
+                                      WindlassCommand& command) {
   if (value == "up" || value == "retrieve" || value == "retrieving") {
-    return WindlassCommand::Up;
+    command = WindlassCommand::Up;
+    return true;
   }
   if (value == "down" || value == "deploy" || value == "deploying") {
-    return WindlassCommand::Down;
+    command = WindlassCommand::Down;
+    return true;
   }
-  return WindlassCommand::Stop;
+  if (value == "stop") {
+    command = WindlassCommand::Stop;
+    return true;
+  }
+  return false;
+}
+
+inline WindlassCommand command_from_string(const String& value) {
+  WindlassCommand command = WindlassCommand::Stop;
+  parse_command_from_string(value, command);
+  return command;
 }

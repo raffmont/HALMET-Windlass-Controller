@@ -110,7 +110,8 @@ faults clear
 
 `up` and `down` are dead-man commands and must be refreshed before
 `command_deadman_ms` expires. A UI should send `stop` on release, page blur, or
-network shutdown.
+network shutdown. Unknown command strings are rejected, stop the relays, and set
+`FaultInvalidCommand`.
 
 ## Documentation
 
